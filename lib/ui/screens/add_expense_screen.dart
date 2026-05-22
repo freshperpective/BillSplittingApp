@@ -9,6 +9,7 @@ import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
 import '../../data/supabase_client.dart';
 import '../theme/tabby_theme.dart';
+import 'group_detail_screen.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
   const AddExpenseScreen({super.key, required this.groupId});
@@ -174,6 +175,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
             category: 'general',
             split: split,
           );
+
+      // Drop the cached expense list so the group screen re-fetches and
+      // the new expense appears immediately.
+      ref.invalidate(groupExpensesProvider(widget.groupId));
 
       if (mounted) context.go('/group/${widget.groupId}');
     } catch (e) {

@@ -41,13 +41,10 @@ class GroupsRepository {
         .select()
         .single();
 
-    // The owner is auto-added via a trigger server-side. Mirror that here in
-    // case the trigger isn't deployed yet.
-    await _client.from('group_members').upsert({
-      'group_id': row['id'],
-      'profile_id': user.id,
-      'role': 'owner',
-    });
+    // The owner is auto-added by the `on_group_created` trigger server-side.
+    // Do not mirror the insert from the client — a client-side upsert here
+    // would become an UPDATE on the row the trigger already inserted, and
+    // `group_members` has no UPDATE RLS policy, which surfaces as 42501.
 
     return Group.fromJson(row);
   }

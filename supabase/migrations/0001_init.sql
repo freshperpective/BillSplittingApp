@@ -185,8 +185,13 @@ create policy "self can update own profile" on public.profiles
   for update using (id = auth.uid());
 
 -- groups
+-- The `created_by = auth.uid()` branch is essential for INSERT...RETURNING:
+-- PostgREST returns the inserted row through the SELECT policy, and the
+-- add_group_owner trigger may not have made the user a member yet.
 create policy "members can read groups" on public.groups
-  for select using (public.is_group_member(id));
+  for select using (
+    created_by = auth.uid() or public.is_group_member(id)
+  );
 create policy "anyone can create a group" on public.groups
   for insert with check (created_by = auth.uid());
 create policy "owners can update groups" on public.groups

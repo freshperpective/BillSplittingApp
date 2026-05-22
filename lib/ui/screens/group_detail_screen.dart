@@ -16,7 +16,9 @@ final _groupMembersProvider =
   return ref.watch(groupsRepositoryProvider).listMembers(groupId);
 });
 
-final _groupExpensesProvider =
+// Public so the add-expense screen can `ref.invalidate(...)` after a successful
+// save and force this screen to re-fetch instead of serving the stale cache.
+final groupExpensesProvider =
     FutureProvider.family<List<Expense>, String>((ref, groupId) async {
   return ref.watch(expensesRepositoryProvider).listForGroup(groupId);
 });
@@ -28,7 +30,7 @@ class GroupDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final expenses = ref.watch(_groupExpensesProvider(groupId));
+    final expenses = ref.watch(groupExpensesProvider(groupId));
     final me = ref.watch(currentUserProvider);
 
     return Scaffold(
@@ -50,7 +52,7 @@ class GroupDetailScreen extends ConsumerWidget {
           }
           return RefreshIndicator(
             onRefresh: () async =>
-                ref.refresh(_groupExpensesProvider(groupId).future),
+                ref.refresh(groupExpensesProvider(groupId).future),
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
               itemCount: list.length,
