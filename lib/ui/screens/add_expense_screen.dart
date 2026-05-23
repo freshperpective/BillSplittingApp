@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models.dart';
 import '../../core/split_engine.dart';
+import '../../data/activity_repository.dart';
 import '../../data/balance_providers.dart';
 import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
@@ -402,6 +403,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       // off the expense list, so we have to nudge them too.
       ref.invalidate(groupBalanceProvider(widget.groupId));
       ref.invalidate(balancesRollupProvider);
+      // Activity feed reads from the server-side trigger row that just landed
+      // — bump it so the new event shows up without a manual refresh.
+      ref.invalidate(activityFeedProvider);
 
       if (mounted) context.go('/group/${widget.groupId}');
     } catch (e) {

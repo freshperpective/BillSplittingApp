@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/models.dart';
+import '../../data/activity_repository.dart';
 import '../../data/balance_providers.dart';
 import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
@@ -342,6 +343,11 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
 
       await repo.addMember(groupId: widget.groupId, profileId: profile.id);
       ref.invalidate(groupMembersProvider(widget.groupId));
+      // New member can change who owes whom in this group, and trips the
+      // server-side activity trigger. Bump both surfaces so they reflect it.
+      ref.invalidate(groupBalanceProvider(widget.groupId));
+      ref.invalidate(balancesRollupProvider);
+      ref.invalidate(activityFeedProvider);
       _email.clear();
       setState(() => _success = 'Added ${profile.displayName}.');
     } catch (e) {

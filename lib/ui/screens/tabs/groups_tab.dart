@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/models.dart';
+import '../../../data/activity_repository.dart';
 import '../../../data/groups_repository.dart';
 import '../../theme/tabby_theme.dart';
 
@@ -146,6 +147,9 @@ class _NewGroupSheetState extends ConsumerState<_NewGroupSheet> {
             defaultCurrency: _currency,
           );
       ref.invalidate(myGroupsProvider);
+      // Server-side trigger logs a group.create event — refresh the feed
+      // so the new group surfaces in Activity immediately.
+      ref.invalidate(activityFeedProvider);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
