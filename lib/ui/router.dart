@@ -7,6 +7,7 @@ import 'screens/auth_screen.dart';
 import 'screens/group_detail_screen.dart';
 import 'screens/home_shell.dart';
 import 'screens/add_expense_screen.dart';
+import 'screens/expense_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -37,6 +38,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: 'add',
                 builder: (_, state) =>
                     AddExpenseScreen(groupId: state.pathParameters['id']!),
+              ),
+              GoRoute(
+                path: 'expense/:expenseId',
+                builder: (_, state) => ExpenseDetailScreen(
+                  groupId: state.pathParameters['id']!,
+                  expenseId: state.pathParameters['expenseId']!,
+                ),
               ),
             ],
           ),

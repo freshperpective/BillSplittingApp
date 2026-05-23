@@ -5,7 +5,12 @@ import 'models.dart';
 import 'money.dart';
 
 /// How an expense is divided among participants.
-enum SplitMode { equal, unequal, percent, shares }
+///
+/// `adjust` is mathematically identical to `unequal`: the only difference
+/// is that the UI pre-fills equal shares and auto-redistributes around
+/// fields the user has explicitly anchored. By the time inputs reach the
+/// engine they're already per-person amounts.
+enum SplitMode { equal, unequal, percent, shares, adjust }
 
 /// Per-participant input for a split.
 ///
@@ -75,6 +80,8 @@ class SplitEngine {
     final owed = switch (mode) {
       SplitMode.equal => _splitEqual(total, currency, participants),
       SplitMode.unequal => _splitUnequal(total, participants),
+      // Adjust uses the same per-person-amounts math as unequal.
+      SplitMode.adjust => _splitUnequal(total, participants),
       SplitMode.percent => _splitPercent(total, currency, participants),
       SplitMode.shares => _splitShares(total, currency, participants),
     };

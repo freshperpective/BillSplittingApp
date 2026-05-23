@@ -6,10 +6,6 @@ import '../../../core/models.dart';
 import '../../../data/groups_repository.dart';
 import '../../theme/tabby_theme.dart';
 
-final myGroupsProvider = FutureProvider<List<Group>>((ref) async {
-  return ref.watch(groupsRepositoryProvider).listMyGroups();
-});
-
 class GroupsTab extends ConsumerWidget {
   const GroupsTab({super.key});
 

@@ -60,8 +60,50 @@ class GroupsRepository {
             ))
         .toList();
   }
+
+  /// Look up an existing user by their account email. Returns null when no
+  /// account exists for that email. Uses the `find_profile_by_email` RPC
+  /// (SECURITY DEFINER) because RLS prevents direct reads of profiles you
+  /// don't share a group with.
+  Future<Profile?> findProfileByEmail(String email) async {
+    final res = await _client
+        .rpc('find_profile_by_email', params: {'p_email': email});
+    if (res is List && res.isNotEmpty) {
+      final row = (res.first as Map).cast<String, dynamic>();
+      return Profile(
+        id: row['id'] as String,
+        displayName: row['display_name'] as String? ?? 'Unknown',
+      );
+    }
+    return null;
+  }
+
+  /// Add a profile to a group. RLS allows this only when the caller is an
+  /// owner of the group OR they're adding themselves.
+  Future<void> addMember({
+    required String groupId,
+    required String profileId,
+    String role = 'member',
+  }) async {
+    await _client.from('group_members').insert({
+      'group_id': groupId,
+      'profile_id': profileId,
+      'role': role,
+    });
+  }
 }
 
 final groupsRepositoryProvider = Provider<GroupsRepository>((ref) {
   return GroupsRepository(ref.watch(supabaseClientProvider));
+});
+
+/// All groups the current user is in, most-recent first.
+final myGroupsProvider = FutureProvider<List<Group>>((ref) async {
+  return ref.watch(groupsRepositoryProvider).listMyGroups();
+});
+
+/// Members (profiles) of one group. UI invalidates this after add-member.
+final groupMembersProvider =
+    FutureProvider.family<List<Profile>, String>((ref, groupId) async {
+  return ref.watch(groupsRepositoryProvider).listMembers(groupId);
 });

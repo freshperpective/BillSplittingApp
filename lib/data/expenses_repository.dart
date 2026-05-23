@@ -113,3 +113,10 @@ class ExpensesRepository {
 final expensesRepositoryProvider = Provider<ExpensesRepository>((ref) {
   return ExpensesRepository(ref.watch(supabaseClientProvider));
 });
+
+/// Expenses for one group, sorted newest-first. UI screens watch this and
+/// `ref.invalidate(groupExpensesProvider(groupId))` after mutations.
+final groupExpensesProvider =
+    FutureProvider.family<List<Expense>, String>((ref, groupId) async {
+  return ref.watch(expensesRepositoryProvider).listForGroup(groupId);
+});
