@@ -76,6 +76,10 @@ class _ExpenseDetailBody extends StatelessWidget {
         ? _name(payerShares.first.profileId)
         : '${payerShares.length} people';
     final dateFmt = DateFormat.yMMMMd();
+    // createdAt vs paidAt are different things: paidAt is the date of the
+    // expense itself, createdAt is when it was logged into Tabby. Both are
+    // useful in audits ("was this entered late?") so we show both.
+    final createdFmt = DateFormat.yMMMd().add_jm();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -118,6 +122,22 @@ class _ExpenseDetailBody extends StatelessWidget {
                   Text(dateFmt.format(expense.paidAt),
                       style: const TextStyle(
                           color: TabbyTheme.dim, fontSize: 13)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(Icons.schedule_outlined,
+                      size: 14, color: TabbyTheme.dim),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'Added ${createdFmt.format(expense.createdAt.toLocal())} '
+                      'by ${_name(expense.createdBy)}',
+                      style: const TextStyle(
+                          color: TabbyTheme.dim, fontSize: 12),
+                    ),
+                  ),
                 ],
               ),
             ],

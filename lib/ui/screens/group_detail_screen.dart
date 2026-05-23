@@ -21,30 +21,54 @@ class GroupDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final expenses = ref.watch(groupExpensesProvider(groupId));
     final members = ref.watch(groupMembersProvider(groupId));
+    final group = ref.watch(groupByIdProvider(groupId));
+    final myRole = ref.watch(myRoleInGroupProvider(groupId));
     final me = ref.watch(currentUserProvider);
     // Falls back to empty until the members provider resolves — payer name
     // shows up as "Unknown" for the first frame, then settles to the real name.
     final memberList = members.valueOrNull ?? const <Profile>[];
+    final isArchived = group.valueOrNull?.isArchived ?? false;
+    final isOwner = myRole.valueOrNull == 'owner';
 
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: () => context.go('/')),
-        title: const Text('Group'),
+        title: Text(group.valueOrNull?.name ?? 'Group'),
         actions: [
           IconButton(
             tooltip: 'Members',
             icon: const Icon(Icons.people_outline),
             onPressed: () => _openMembersSheet(context, ref, groupId),
           ),
+          // Owner-only menu. Hidden entirely for members so the AppBar
+          // doesn't grow an empty kebab for them.
+          if (isOwner)
+            _OwnerMenu(
+              groupId: groupId,
+              group: group.valueOrNull,
+            ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/group/$groupId/add'),
-        icon: const Icon(Icons.add),
-        label: const Text('Add expense'),
-      ),
+      // FAB disappears on archived groups — archive = read-only.
+      floatingActionButton: isArchived
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => context.go('/group/$groupId/add'),
+              icon: const Icon(Icons.add),
+              label: const Text('Add expense'),
+            ),
       body: Column(
         children: [
+          if (isArchived) const _ArchivedBanner(),
+          // Group metadata strip — quietly shows who started this and when.
+          // Hides itself until the group object loads so we don't render
+          // "Created by Someone" placeholder text mid-fetch.
+          if (group.valueOrNull != null)
+            _GroupMetaLine(
+              group: group.value!,
+              members: memberList,
+              currentUserId: me?.id,
+            ),
           // Per-group balance summary lives above the list so the user sees
           // their position before scrolling. Hides itself when there's nothing
           // to say (no expenses yet, or fully settled).
@@ -80,6 +104,288 @@ class GroupDetailScreen extends ConsumerWidget {
                   ),
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Three-dot menu with owner-only actions: archive/unarchive + delete.
+/// Lives in the AppBar; the Members button stays separate (open to everyone).
+class _OwnerMenu extends ConsumerWidget {
+  const _OwnerMenu({required this.groupId, required this.group});
+
+  final String groupId;
+  final Group? group;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isArchived = group?.isArchived ?? false;
+    return PopupMenuButton<String>(
+      tooltip: 'Group actions',
+      icon: const Icon(Icons.more_vert),
+      onSelected: (v) async {
+        switch (v) {
+          case 'archive':
+            await _confirmArchive(context, ref, archive: true);
+            break;
+          case 'unarchive':
+            await _confirmArchive(context, ref, archive: false);
+            break;
+          case 'delete':
+            await _confirmDelete(context, ref);
+            break;
+        }
+      },
+      itemBuilder: (_) => [
+        if (isArchived)
+          const PopupMenuItem(
+            value: 'unarchive',
+            child: Row(children: [
+              Icon(Icons.unarchive_outlined, size: 18),
+              SizedBox(width: 12),
+              Text('Unarchive group'),
+            ]),
+          )
+        else
+          const PopupMenuItem(
+            value: 'archive',
+            child: Row(children: [
+              Icon(Icons.archive_outlined, size: 18),
+              SizedBox(width: 12),
+              Text('Archive group'),
+            ]),
+          ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: Row(children: [
+            Icon(Icons.delete_outline, size: 18, color: TabbyTheme.clay),
+            SizedBox(width: 12),
+            Text('Delete group',
+                style: TextStyle(color: TabbyTheme.clay)),
+          ]),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmArchive(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool archive,
+  }) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(archive ? 'Archive group?' : 'Bring back this group?'),
+        content: Text(
+          archive
+              ? 'It will become read-only and tuck into the Archived section. '
+                  'Balances still count — this just hides the day-to-day.'
+              : 'It will move back to your active groups and let you add '
+                  'expenses again.',
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style:
+                FilledButton.styleFrom(backgroundColor: TabbyTheme.teal),
+            child: Text(archive ? 'Archive' : 'Unarchive'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      await ref
+          .read(groupsRepositoryProvider)
+          .setArchived(groupId: groupId, archived: archive);
+      ref.invalidate(groupByIdProvider(groupId));
+      ref.invalidate(myGroupsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(archive ? 'Archived.' : 'Brought back.'),
+        ));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Couldn't update: $e"),
+        ));
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    // Pull the live balance first — open debts get spelled out in the
+    // dialog so the user can't accidentally nuke unsettled history.
+    GroupBalance? balance;
+    try {
+      balance = await ref.read(groupBalanceProvider(groupId).future);
+    } catch (_) {
+      // If the balance read fails we still let them through, but the
+      // dialog falls back to the generic warning.
+    }
+
+    final myId = ref.read(currentUserProvider)?.id;
+    final myTransfers = (balance != null && myId != null)
+        ? balance.myTransfers(myId)
+        : const <({String from, String to, Decimal amount})>[];
+    final hasOpenDebts = myTransfers.isNotEmpty;
+
+    // Names for the open-debts lines.
+    final members =
+        ref.read(groupMembersProvider(groupId)).valueOrNull ?? const [];
+    String nameOf(String id) {
+      if (id == myId) return 'You';
+      for (final m in members) {
+        if (m.id == id) return m.displayName;
+      }
+      return 'Someone';
+    }
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete this group?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'All expenses, settlements, and history will be permanently '
+              'erased. This cannot be undone.',
+            ),
+            if (hasOpenDebts) ...[
+              const SizedBox(height: 12),
+              const Text('There are still open balances here:',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              for (final t in myTransfers)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    t.to == myId
+                        ? '• ${nameOf(t.from)} owes you ${t.amount}'
+                        : '• You owe ${nameOf(t.to)} ${t.amount}',
+                    style: const TextStyle(
+                        color: TabbyTheme.clay, fontSize: 13),
+                  ),
+                ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
+            child: Text(hasOpenDebts ? 'Delete anyway' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      await ref.read(groupsRepositoryProvider).deleteGroup(groupId);
+      ref.invalidate(myGroupsProvider);
+      ref.invalidate(balancesRollupProvider);
+      ref.invalidate(activityFeedProvider);
+      if (context.mounted) {
+        context.go('/');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Group deleted.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Couldn't delete: $e")),
+        );
+      }
+    }
+  }
+}
+
+/// Thin metadata strip: "Created by X · MMMM d, yyyy". Lives above the
+/// balance strip on the group detail screen so the provenance of the
+/// group is one glance away without taking real estate from the list.
+class _GroupMetaLine extends StatelessWidget {
+  const _GroupMetaLine({
+    required this.group,
+    required this.members,
+    required this.currentUserId,
+  });
+
+  final Group group;
+  final List<Profile> members;
+  final String? currentUserId;
+
+  @override
+  Widget build(BuildContext context) {
+    // Resolve the creator's display name from the members list. Falls back
+    // to "the owner" if the members provider hasn't resolved yet — the line
+    // will repaint with the real name once it does.
+    String creatorLabel;
+    if (group.createdBy == currentUserId) {
+      creatorLabel = 'you';
+    } else {
+      String? name;
+      for (final m in members) {
+        if (m.id == group.createdBy) {
+          name = m.displayName;
+          break;
+        }
+      }
+      creatorLabel = name ?? 'the owner';
+    }
+
+    final dateFmt = DateFormat.yMMMMd();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, size: 14, color: TabbyTheme.dim),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              'Created by $creatorLabel · ${dateFmt.format(group.createdAt.toLocal())}',
+              style: const TextStyle(
+                  color: TabbyTheme.dim, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ArchivedBanner extends StatelessWidget {
+  const _ArchivedBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: TabbyTheme.mist.withOpacity(0.6),
+      child: Row(
+        children: const [
+          Icon(Icons.archive_outlined, size: 16, color: TabbyTheme.dim),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              "Archived — read-only. Unarchive to add new expenses.",
+              style: TextStyle(color: TabbyTheme.dim, fontSize: 13),
             ),
           ),
         ],
@@ -268,10 +574,27 @@ class _ExpenseRow extends StatelessWidget {
           ),
         ),
         title: Text(expense.description),
-        subtitle: Text(
-          'Paid by $payerLabel · ${expense.currency} ${expense.amount}',
-          style: TextStyle(color: TabbyTheme.dim, fontSize: 12),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Paid by $payerLabel · ${expense.currency} ${expense.amount}',
+              style: const TextStyle(
+                  color: TabbyTheme.dim, fontSize: 12),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              // Distinct from the paidAt-derived day chip — this answers
+              // "when did someone log this into the app", useful when an
+              // expense gets entered days after the fact.
+              'added ${_relativeTime(expense.createdAt)}',
+              style: const TextStyle(
+                  color: TabbyTheme.dim, fontSize: 11),
+            ),
+          ],
         ),
+        isThreeLine: true,
         trailing: youAreZero
             ? Text('settled',
                 style: TextStyle(color: TabbyTheme.dim, fontSize: 12))
@@ -361,6 +684,8 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
   @override
   Widget build(BuildContext context) {
     final members = ref.watch(groupMembersProvider(widget.groupId));
+    final group = ref.watch(groupByIdProvider(widget.groupId));
+    final isArchived = group.valueOrNull?.isArchived ?? false;
     final inset = MediaQuery.of(context).viewInsets.bottom;
 
     return Padding(
@@ -371,7 +696,18 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
         children: [
           Text('Members', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 16),
-          // Add-by-email row.
+          // Add-by-email row. Disabled on archived groups — archive = no
+          // new state changes; matches the read-only FAB rule on the
+          // group detail screen.
+          if (isArchived)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                "This group is archived — adding members is paused.",
+                style: const TextStyle(
+                    color: TabbyTheme.dim, fontSize: 13),
+              ),
+            ),
           Row(
             children: [
               Expanded(
@@ -379,16 +715,18 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
+                  enabled: !isArchived,
                   decoration: const InputDecoration(
                     labelText: 'Add by email',
                     hintText: 'friend@example.com',
                   ),
-                  onSubmitted: (_) => _busy ? null : _addByEmail(),
+                  onSubmitted: (_) =>
+                      (_busy || isArchived) ? null : _addByEmail(),
                 ),
               ),
               const SizedBox(width: 10),
               FilledButton(
-                onPressed: _busy ? null : _addByEmail,
+                onPressed: (_busy || isArchived) ? null : _addByEmail,
                 style: FilledButton.styleFrom(
                   backgroundColor: TabbyTheme.teal,
                   minimumSize: const Size(80, 48),
@@ -425,28 +763,58 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
             ),
             error: (e, _) => Text('Could not load members: $e',
                 style: const TextStyle(color: TabbyTheme.clay)),
-            data: (list) => Column(
-              children: list
-                  .map((m) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          backgroundColor: TabbyTheme.amber.withOpacity(0.4),
-                          child: Text(
-                            m.displayName.isNotEmpty
-                                ? m.displayName.substring(0, 1).toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: TabbyTheme.teal),
+            data: (list) {
+              // Group.createdBy is the source of truth for the owner in v0.3
+              // (we don't support transferring ownership yet). When that
+              // changes, switch to a role lookup via a members-with-role
+              // query instead.
+              final ownerId = group.valueOrNull?.createdBy;
+              return Column(
+                children: list.map((m) {
+                  final isOwner = m.id == ownerId;
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: TabbyTheme.amber.withOpacity(0.4),
+                      child: Text(
+                        m.displayName.isNotEmpty
+                            ? m.displayName.substring(0, 1).toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: TabbyTheme.teal),
+                      ),
+                    ),
+                    title: Row(
+                      children: [
+                        Flexible(child: Text(m.displayName)),
+                        if (isOwner) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: TabbyTheme.teal.withOpacity(0.14),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'owner',
+                              style: TextStyle(
+                                  color: TabbyTheme.teal,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600),
+                            ),
                           ),
-                        ),
-                        title: Text(m.displayName),
-                        subtitle: Text(m.defaultCurrency,
-                            style: const TextStyle(
-                                color: TabbyTheme.dim, fontSize: 12)),
-                      ))
-                  .toList(),
-            ),
+                        ],
+                      ],
+                    ),
+                    subtitle: Text(m.defaultCurrency,
+                        style: const TextStyle(
+                            color: TabbyTheme.dim, fontSize: 12)),
+                  );
+                }).toList(),
+              );
+            },
           ),
         ],
       ),
@@ -481,4 +849,16 @@ class _GroupEmpty extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Coarse human-readable elapsed time. Mirrors the helper in activity_tab.dart
+/// — when we add a third caller, this should move into a shared util module.
+String _relativeTime(DateTime t) {
+  final diff = DateTime.now().difference(t);
+  if (diff.inSeconds < 45) return 'just now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+  if (diff.inHours < 24) return '${diff.inHours}h ago';
+  if (diff.inDays == 1) return 'yesterday';
+  if (diff.inDays < 14) return '${diff.inDays}d ago';
+  return '${(diff.inDays / 7).floor()}w ago';
 }
