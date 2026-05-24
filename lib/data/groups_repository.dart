@@ -91,6 +91,60 @@ class GroupsRepository {
       'role': role,
     });
   }
+
+  /// Single group by id. Used by GroupDetailScreen to know whether the
+  /// group is archived without re-fetching the whole `myGroupsProvider`
+  /// list. RLS already restricts this to groups the user can see.
+  Future<Group> getGroup(String id) async {
+    final row = await _client
+        .from('groups')
+        .select()
+        .eq('id', id)
+        .single();
+    return Group.fromJson(row);
+  }
+
+  /// Current user's role in the group (`'owner'` | `'member'` | null when
+  /// not signed in or not a member). The owner-only menu items hinge on
+  /// this; null also covers the not-a-member edge case (RLS would block
+  /// the read but maybeSingle returns null cleanly).
+  Future<String?> getMyRole(String groupId) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return null;
+    final row = await _client
+        .from('group_members')
+        .select('role')
+        .eq('group_id', groupId)
+        .eq('profile_id', user.id)
+        .maybeSingle();
+    return row?['role'] as String?;
+  }
+
+  /// Flip `archived_at` on/off. Archived groups stay visible (just dimmed)
+  /// and still count toward balances — this is a soft visibility toggle,
+  /// not a debt forgiveness gesture. The UPDATE policy on groups already
+  /// limits this to owners.
+  Future<void> setArchived({
+    required String groupId,
+    required bool archived,
+  }) async {
+    await _client
+        .from('groups')
+        .update({
+          'archived_at': archived
+              ? DateTime.now().toUtc().toIso8601String()
+              : null,
+        })
+        .eq('id', groupId);
+  }
+
+  /// Permanently delete a group and everything in it (group_members,
+  /// expenses, expense_shares via expense FK, settlements, activity_events
+  /// — all set up with ON DELETE CASCADE in 0001). The DELETE policy added
+  /// in 0004 gates this to owners.
+  Future<void> deleteGroup(String groupId) async {
+    await _client.from('groups').delete().eq('id', groupId);
+  }
 }
 
 final groupsRepositoryProvider = Provider<GroupsRepository>((ref) {
@@ -106,4 +160,18 @@ final myGroupsProvider = FutureProvider<List<Group>>((ref) async {
 final groupMembersProvider =
     FutureProvider.family<List<Profile>, String>((ref, groupId) async {
   return ref.watch(groupsRepositoryProvider).listMembers(groupId);
+});
+
+/// One group fetched by id. Invalidated after archive/unarchive so the
+/// detail screen reflects the new state without a full Groups-tab refresh.
+final groupByIdProvider =
+    FutureProvider.family<Group, String>((ref, id) async {
+  return ref.watch(groupsRepositoryProvider).getGroup(id);
+});
+
+/// Current user's role in a given group. `null` means "not a member"
+/// (or not signed in). Used to gate owner-only UI affordances.
+final myRoleInGroupProvider =
+    FutureProvider.family<String?, String>((ref, groupId) async {
+  return ref.watch(groupsRepositoryProvider).getMyRole(groupId);
 });

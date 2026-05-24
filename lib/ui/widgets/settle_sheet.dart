@@ -94,6 +94,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
       ref.invalidate(groupBalanceProvider(widget.groupId));
       ref.invalidate(balancesRollupProvider);
       ref.invalidate(activityFeedProvider);
+      ref.invalidate(groupActivityProvider(widget.groupId));
 
       if (mounted) {
         Navigator.of(context).pop(true);

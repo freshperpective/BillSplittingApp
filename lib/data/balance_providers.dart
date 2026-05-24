@@ -135,3 +135,54 @@ final balancesRollupProvider =
 
   return result;
 });
+
+/// One concrete settle option between the current user and a peer, scoped
+/// to a single group. Comes from the same simplified-transfer view that the
+/// per-group balance strip uses, so the math matches everywhere.
+class PeerSettleOption {
+  const PeerSettleOption({
+    required this.group,
+    required this.fromProfileId,
+    required this.toProfileId,
+    required this.amount,
+  });
+
+  final Group group;
+  final String fromProfileId;
+  final String toProfileId;
+  final Decimal amount;
+}
+
+/// Per-group settle options for a given peer, from my perspective.
+///
+/// For each group I share with the peer, we look at the simplified transfers
+/// and pick out the one (if any) that's between me and them. Groups where
+/// the simplifier paired me with someone else are skipped — those aren't
+/// settleable bilaterally without re-routing.
+final peerSettleOptionsProvider =
+    FutureProvider.family<List<PeerSettleOption>, String>((ref, peerId) async {
+  final me = ref.watch(currentUserProvider);
+  if (me == null) return const <PeerSettleOption>[];
+
+  final groups = await ref.watch(myGroupsProvider.future);
+
+  final options = <PeerSettleOption>[];
+  for (final g in groups) {
+    final balance = await ref.watch(groupBalanceProvider(g.id).future);
+    for (final t in balance.transfers) {
+      final involvesUs = (t.from == me.id && t.to == peerId) ||
+          (t.from == peerId && t.to == me.id);
+      if (!involvesUs) continue;
+      options.add(PeerSettleOption(
+        group: g,
+        fromProfileId: t.from,
+        toProfileId: t.to,
+        amount: t.amount,
+      ));
+    }
+  }
+  // Biggest amount first so the picker leads with the chunk most worth
+  // squaring up.
+  options.sort((a, b) => b.amount.compareTo(a.amount));
+  return options;
+});

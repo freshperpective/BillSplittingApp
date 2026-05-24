@@ -11,6 +11,7 @@ import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
 import '../../data/supabase_client.dart';
 import '../theme/tabby_theme.dart';
+import '../widgets/activity_row.dart';
 import '../widgets/settle_sheet.dart';
 
 class GroupDetailScreen extends ConsumerWidget {
@@ -36,6 +37,11 @@ class GroupDetailScreen extends ConsumerWidget {
         leading: BackButton(onPressed: () => context.go('/')),
         title: Text(group.valueOrNull?.name ?? 'Group'),
         actions: [
+          IconButton(
+            tooltip: 'Activity',
+            icon: const Icon(Icons.timeline_outlined),
+            onPressed: () => _openActivitySheet(context, groupId),
+          ),
           IconButton(
             tooltip: 'Members',
             icon: const Icon(Icons.people_outline),
@@ -636,7 +642,7 @@ class _ExpenseRow extends StatelessWidget {
               // Distinct from the paidAt-derived day chip — this answers
               // "when did someone log this into the app", useful when an
               // expense gets entered days after the fact.
-              'added ${_relativeTime(expense.createdAt)}',
+              'added ${relativeTime(expense.createdAt)}',
               style: const TextStyle(
                   color: TabbyTheme.dim, fontSize: 11),
             ),
@@ -664,6 +670,112 @@ void _openMembersSheet(BuildContext context, WidgetRef ref, String groupId) {
     isScrollControlled: true,
     builder: (_) => _MembersSheet(groupId: groupId),
   );
+}
+
+void _openActivitySheet(BuildContext context, String groupId) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    // Larger initial height than members — activity is a list that
+    // benefits from headroom to scroll.
+    builder: (_) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.4,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (_, scrollController) =>
+          _GroupActivitySheet(groupId: groupId, scrollController: scrollController),
+    ),
+  );
+}
+
+class _GroupActivitySheet extends ConsumerWidget {
+  const _GroupActivitySheet({
+    required this.groupId,
+    required this.scrollController,
+  });
+
+  final String groupId;
+  final ScrollController scrollController;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final feedAsync = ref.watch(groupActivityProvider(groupId));
+    final me = ref.watch(currentUserProvider);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Grab handle — drag affordance on top.
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: TabbyTheme.mist,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              Text('Activity',
+                  style: Theme.of(context).textTheme.headlineSmall),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Refresh',
+                icon: const Icon(Icons.refresh, size: 20),
+                onPressed: () =>
+                    ref.invalidate(groupActivityProvider(groupId)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: feedAsync.when(
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text("Couldn't load activity: $e"),
+              ),
+              data: (feed) {
+                if (feed.events.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(
+                      child: Text(
+                        "Nothing's happened in this group yet.",
+                        style: TextStyle(color: TabbyTheme.dim),
+                      ),
+                    ),
+                  );
+                }
+                return ListView.separated(
+                  controller: scrollController,
+                  padding: const EdgeInsets.only(top: 6, bottom: 20),
+                  itemCount: feed.events.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  // We're already scoped to one group — suppress the
+                  // "in $groupName" suffix on each row so it doesn't
+                  // repeat for every single event.
+                  itemBuilder: (_, i) => ActivityRow(
+                    event: feed.events[i],
+                    feed: feed,
+                    myId: me?.id,
+                    showGroupSuffix: false,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _MembersSheet extends ConsumerStatefulWidget {
@@ -719,6 +831,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
       ref.invalidate(groupBalanceProvider(widget.groupId));
       ref.invalidate(balancesRollupProvider);
       ref.invalidate(activityFeedProvider);
+      ref.invalidate(groupActivityProvider(widget.groupId));
       _email.clear();
       setState(() => _success = 'Added ${profile.displayName}.');
     } catch (e) {
@@ -899,14 +1012,4 @@ class _GroupEmpty extends StatelessWidget {
   }
 }
 
-/// Coarse human-readable elapsed time. Mirrors the helper in activity_tab.dart
-/// — when we add a third caller, this should move into a shared util module.
-String _relativeTime(DateTime t) {
-  final diff = DateTime.now().difference(t);
-  if (diff.inSeconds < 45) return 'just now';
-  if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-  if (diff.inHours < 24) return '${diff.inHours}h ago';
-  if (diff.inDays == 1) return 'yesterday';
-  if (diff.inDays < 14) return '${diff.inDays}d ago';
-  return '${(diff.inDays / 7).floor()}w ago';
-}
+// `relativeTime` is shared from lib/ui/widgets/activity_row.dart.

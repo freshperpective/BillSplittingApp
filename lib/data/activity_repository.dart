@@ -37,7 +37,31 @@ class ActivityRepository {
         .select()
         .order('created_at', ascending: false)
         .limit(limit);
+    return _hydrate(rows);
+  }
 
+  /// Recent activity for a single group. Used by the per-group activity
+  /// sheet — same shape as `listMine`, just scoped down. RLS would let
+  /// non-members through (the SELECT policy is `group_id is null or
+  /// is_group_member(group_id)`), but in practice this is only opened
+  /// from inside a group the user is already a member of.
+  Future<ActivityFeed> listForGroup(
+    String groupId, {
+    int limit = 100,
+  }) async {
+    final rows = await _client
+        .from('activity_events')
+        .select()
+        .eq('group_id', groupId)
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return _hydrate(rows);
+  }
+
+  /// Parses the rows and hydrates profile + group lookups in two batched
+  /// reads. Kept private so `listMine` and `listForGroup` stay free of
+  /// duplicate plumbing.
+  Future<ActivityFeed> _hydrate(dynamic rows) async {
     final events = (rows as List)
         .cast<Map<String, dynamic>>()
         .map(ActivityEvent.fromJson)
@@ -98,4 +122,12 @@ final activityRepositoryProvider = Provider<ActivityRepository>((ref) {
 /// that produce activity rows (add-expense, add-member, create-group, settle).
 final activityFeedProvider = FutureProvider<ActivityFeed>((ref) async {
   return ref.watch(activityRepositoryProvider).listMine();
+});
+
+/// Per-group activity feed. The group-level activity sheet on GroupDetailScreen
+/// watches this; same invalidations as activityFeedProvider keep the two views
+/// coherent.
+final groupActivityProvider =
+    FutureProvider.family<ActivityFeed, String>((ref, groupId) async {
+  return ref.watch(activityRepositoryProvider).listForGroup(groupId);
 });

@@ -37,13 +37,58 @@ class GroupsTab extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) return const _NoGroups();
+          // Partition rather than two filter() passes so the ordering from
+          // the server (created_at desc) is preserved within each section.
+          final active = <Group>[];
+          final archived = <Group>[];
+          for (final g in list) {
+            (g.isArchived ? archived : active).add(g);
+          }
+
           return RefreshIndicator(
             onRefresh: () async => ref.refresh(myGroupsProvider.future),
-            child: ListView.separated(
+            child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (_, i) => _GroupCard(group: list[i]),
+              children: [
+                if (active.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      'No active groups — bring one back from Archived or '
+                      'start something new.',
+                      style: TextStyle(color: TabbyTheme.dim),
+                    ),
+                  )
+                else
+                  for (final g in active) ...[
+                    _GroupCard(group: g),
+                    const SizedBox(height: 10),
+                  ],
+                if (archived.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.archive_outlined,
+                            size: 16, color: TabbyTheme.dim),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Archived',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(color: TabbyTheme.dim),
+                        ),
+                      ],
+                    ),
+                  ),
+                  for (final g in archived) ...[
+                    _GroupCard(group: g, archived: true),
+                    const SizedBox(height: 10),
+                  ],
+                ],
+              ],
             ),
           );
         },
@@ -61,12 +106,18 @@ class GroupsTab extends ConsumerWidget {
 }
 
 class _GroupCard extends StatelessWidget {
-  const _GroupCard({required this.group});
+  const _GroupCard({required this.group, this.archived = false});
+
   final Group group;
+
+  /// Renders the card in a muted style — same data, lower visual weight.
+  /// The actual archive state lives on the Group model; this flag is just
+  /// a presentation hint so the Groups tab can group rows by section.
+  final bool archived;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final card = Card(
       child: ListTile(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -74,7 +125,7 @@ class _GroupCard extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withOpacity(0.18),
+            color: TabbyTheme.amber.withOpacity(archived ? 0.10 : 0.18),
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
@@ -82,14 +133,34 @@ class _GroupCard extends StatelessWidget {
         ),
         title: Text(group.name,
             style: Theme.of(context).textTheme.titleMedium),
-        subtitle: Text(
-          group.defaultCurrency,
-          style: TextStyle(color: TabbyTheme.dim, fontSize: 12),
+        subtitle: Row(
+          children: [
+            Text(group.defaultCurrency,
+                style: const TextStyle(
+                    color: TabbyTheme.dim, fontSize: 12)),
+            if (archived) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: TabbyTheme.mist,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('archived',
+                    style: TextStyle(
+                        color: TabbyTheme.dim,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500)),
+              ),
+            ],
+          ],
         ),
         trailing: const Icon(Icons.chevron_right, color: TabbyTheme.dim),
         onTap: () => context.go('/group/${group.id}'),
       ),
     );
+    return archived ? Opacity(opacity: 0.65, child: card) : card;
   }
 }
 

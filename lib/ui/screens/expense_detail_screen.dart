@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/models.dart';
+import '../../data/activity_repository.dart';
+import '../../data/balance_providers.dart';
 import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
+import '../../data/supabase_client.dart';
 import '../theme/tabby_theme.dart';
 
 class ExpenseDetailScreen extends ConsumerWidget {
@@ -23,20 +26,33 @@ class ExpenseDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final expenses = ref.watch(groupExpensesProvider(groupId));
     final members = ref.watch(groupMembersProvider(groupId));
+    final me = ref.watch(currentUserProvider);
+
+    // Resolve the expense up-front (rather than inside `expenses.when`) so
+    // the AppBar can show creator-only actions without nesting another
+    // layer of `.when()`.
+    final expense = expenses.valueOrNull
+        ?.where((e) => e.id == expenseId)
+        .cast<Expense?>()
+        .firstWhere((_) => true, orElse: () => null);
+    final isCreator = expense != null && me?.id == expense.createdBy;
 
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: () => context.go('/group/$groupId')),
         title: const Text('Expense'),
+        actions: [
+          if (isCreator)
+            _ExpenseActionsMenu(
+              expense: expense,
+              groupId: groupId,
+            ),
+        ],
       ),
       body: expenses.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Failed to load: $e')),
         data: (list) {
-          final expense = list
-              .where((e) => e.id == expenseId)
-              .cast<Expense?>()
-              .firstWhere((_) => true, orElse: () => null);
           if (expense == null) {
             return const _MissingExpense();
           }
@@ -52,6 +68,93 @@ class ExpenseDetailScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+}
+
+/// Creator-only AppBar actions. Lives as its own widget so the dialog and
+/// async flow are encapsulated; the parent screen just decides whether to
+/// show it. Today this is just Delete — Edit will join when the design
+/// conversation around split-mode round-tripping lands.
+class _ExpenseActionsMenu extends ConsumerWidget {
+  const _ExpenseActionsMenu({
+    required this.expense,
+    required this.groupId,
+  });
+
+  final Expense expense;
+  final String groupId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      tooltip: 'Expense actions',
+      icon: const Icon(Icons.more_vert),
+      onSelected: (v) async {
+        if (v == 'delete') {
+          await _confirmDelete(context, ref);
+        }
+      },
+      itemBuilder: (_) => const [
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(children: [
+            Icon(Icons.delete_outline, size: 18, color: TabbyTheme.clay),
+            SizedBox(width: 12),
+            Text('Delete expense',
+                style: TextStyle(color: TabbyTheme.clay)),
+          ]),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete this expense?'),
+        content: Text(
+          'It will disappear from the group, balances will recalculate, '
+          'and the activity feed will record the removal. '
+          'Existing settlements stay put.',
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      await ref.read(expensesRepositoryProvider).softDelete(expense.id);
+      // Server-side trigger logs an expense.delete event automatically;
+      // we just need to refresh the read surfaces.
+      ref.invalidate(groupExpensesProvider(groupId));
+      ref.invalidate(groupBalanceProvider(groupId));
+      ref.invalidate(balancesRollupProvider);
+      ref.invalidate(activityFeedProvider);
+      ref.invalidate(groupActivityProvider(groupId));
+
+      if (context.mounted) {
+        context.go('/group/$groupId');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Expense deleted.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Couldn't delete: $e")),
+        );
+      }
+    }
   }
 }
 

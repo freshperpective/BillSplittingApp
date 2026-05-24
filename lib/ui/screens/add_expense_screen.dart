@@ -212,6 +212,13 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     final members = ref.watch(groupMembersProvider(widget.groupId));
+    final group = ref.watch(groupByIdProvider(widget.groupId));
+
+    // Defensive: archived groups should never reach this screen via the FAB
+    // (it's hidden), but route deep-links / hot-reload races could still
+    // land us here. Bounce out cleanly instead of letting a save go
+    // through that the user already opted to freeze.
+    final isArchived = group.valueOrNull?.isArchived ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -221,14 +228,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           onPressed: () => context.go('/group/${widget.groupId}'),
         ),
       ),
-      body: members.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Failed: $e')),
-        data: (list) {
-          _payerId ??= ref.read(currentUserProvider)?.id ?? list.first.id;
-          return _buildForm(list);
-        },
-      ),
+      body: isArchived
+          ? _ArchivedNotice(groupId: widget.groupId)
+          : members.when(
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Failed: $e')),
+              data: (list) {
+                _payerId ??=
+                    ref.read(currentUserProvider)?.id ?? list.first.id;
+                return _buildForm(list);
+              },
+            ),
     );
   }
 
@@ -406,6 +417,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       // Activity feed reads from the server-side trigger row that just landed
       // — bump it so the new event shows up without a manual refresh.
       ref.invalidate(activityFeedProvider);
+      ref.invalidate(groupActivityProvider(widget.groupId));
 
       if (mounted) context.go('/group/${widget.groupId}');
     } catch (e) {
@@ -590,3 +602,45 @@ class _ValidationBanner extends StatelessWidget {
     );
   }
 }
+
+/// Shown in place of the form when the group is archived. Friendly explanation
+/// plus a path back to the group page — keeps deep-links / hot-reload races
+/// from letting a write through on a frozen group.
+class _ArchivedNotice extends StatelessWidget {
+  const _ArchivedNotice({required this.groupId});
+  final String groupId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.archive_outlined,
+                size: 48, color: TabbyTheme.dim),
+            const SizedBox(height: 12),
+            Text("This group is archived.",
+                style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 8),
+            const Text(
+              "Unarchive it from the group page to add new expenses.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: TabbyTheme.dim),
+            ),
+            const SizedBox(height: 18),
+            FilledButton(
+              onPressed: () => context.go('/group/$groupId'),
+              style: FilledButton.styleFrom(
+                backgroundColor: TabbyTheme.teal,
+              ),
+              child: const Text('Back to group'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

@@ -1,10 +1,12 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../data/balance_providers.dart';
 import '../../../data/supabase_client.dart';
 import '../../theme/tabby_theme.dart';
+import '../../widgets/settle_sheet.dart';
 
 /// Cross-group rollup of who owes whom, from the current user's perspective.
 ///
@@ -208,59 +210,299 @@ class _SummaryStat extends StatelessWidget {
   }
 }
 
-class _PeerCard extends StatelessWidget {
+class _PeerCard extends ConsumerWidget {
   const _PeerCard({required this.balance});
 
   final PeerBalance balance;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final peerOwes = balance.peerOwesMe;
     final initial = balance.peer.displayName.isNotEmpty
         ? balance.peer.displayName.substring(0, 1).toUpperCase()
         : '?';
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: TabbyTheme.amber.withOpacity(0.4),
-              child: Text(
-                initial,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, color: TabbyTheme.teal),
+      child: InkWell(
+        onTap: () => _openBreakdown(context, ref),
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: TabbyTheme.amber.withOpacity(0.4),
+                child: Text(
+                  initial,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, color: TabbyTheme.teal),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(balance.peer.displayName,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 2),
-                  Text(
-                    peerOwes ? 'owes you' : 'you owe',
-                    style: TextStyle(
-                      color: peerOwes
-                          ? TabbyTheme.teal
-                          : TabbyTheme.clay,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(balance.peer.displayName,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 2),
+                    Text(
+                      peerOwes ? 'owes you' : 'you owe',
+                      style: TextStyle(
+                        color: peerOwes
+                            ? TabbyTheme.teal
+                            : TabbyTheme.clay,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+              Text(
+                balance.magnitude.toString(),
+                style: amountStyle(context, positive: peerOwes),
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.chevron_right,
+                  size: 18, color: TabbyTheme.dim),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Open the breakdown sheet: shows per-group debts with this peer, lets
+  /// the user tap into a group OR open the settle sheet for any one row.
+  /// This replaces the earlier "tap = settle" behaviour — settle is still
+  /// reachable from each row in the breakdown.
+  Future<void> _openBreakdown(BuildContext context, WidgetRef ref) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _PeerBreakdownSheet(balance: balance),
+    );
+  }
+}
+
+/// Bottom sheet showing a peer's balance broken down by group. Each row
+/// tap-navigates to that group; the inline settle icon opens SettleSheet
+/// pre-filled with the row's amount.
+class _PeerBreakdownSheet extends ConsumerWidget {
+  const _PeerBreakdownSheet({required this.balance});
+
+  final PeerBalance balance;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final optionsAsync =
+        ref.watch(peerSettleOptionsProvider(balance.peer.id));
+    final me = ref.read(currentUserProvider)?.id;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: TabbyTheme.mist,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            Text(
-              balance.magnitude.toString(),
-              style: amountStyle(context, positive: peerOwes),
+          ),
+          // Header — peer name + signed total, matching the card's tone.
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(balance.peer.displayName,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall),
+                    const SizedBox(height: 2),
+                    Text(
+                      balance.peerOwesMe ? 'owes you' : 'you owe',
+                      style: TextStyle(
+                        color: balance.peerOwesMe
+                            ? TabbyTheme.teal
+                            : TabbyTheme.clay,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                balance.magnitude.toString(),
+                style: amountStyle(context, positive: balance.peerOwesMe)
+                    .copyWith(fontSize: 22),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Broken down by group. Tap a row to open it, or use the handshake icon to settle.',
+            style: TextStyle(color: TabbyTheme.dim, fontSize: 12),
+          ),
+          const SizedBox(height: 14),
+          optionsAsync.when(
+            loading: () => const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: CircularProgressIndicator()),
             ),
-          ],
+            error: (e, _) => Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text("Couldn't load groups: $e",
+                  style: const TextStyle(color: TabbyTheme.clay)),
+            ),
+            data: (options) {
+              if (options.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    "No bilateral group balance with ${balance.peer.displayName}. "
+                    "Their debt is routed through someone else by the simplifier — "
+                    "settle that link from the group page first.",
+                    style: const TextStyle(
+                        color: TabbyTheme.dim, fontSize: 13),
+                  ),
+                );
+              }
+              return Column(
+                children: [
+                  for (final o in options)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: _BreakdownRow(
+                        option: o,
+                        peerId: balance.peer.id,
+                        peerName: balance.peer.displayName,
+                        myId: me,
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BreakdownRow extends ConsumerWidget {
+  const _BreakdownRow({
+    required this.option,
+    required this.peerId,
+    required this.peerName,
+    required this.myId,
+  });
+
+  final PeerSettleOption option;
+  final String peerId;
+  final String peerName;
+  final String? myId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final peerOwesMeHere = option.toProfileId == myId;
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          // Close the sheet first, then navigate. context.go on its own
+          // would also work (router replaces stack) but popping makes the
+          // back stack cleaner.
+          Navigator.of(context).pop();
+          context.go('/group/${option.group.id}');
+        },
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: TabbyTheme.amber.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(option.group.emoji,
+                    style: const TextStyle(fontSize: 18)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(option.group.name,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 2),
+                    Text(
+                      peerOwesMeHere
+                          ? '$peerName owes you'
+                          : 'you owe $peerName',
+                      style: TextStyle(
+                        color: peerOwesMeHere
+                            ? TabbyTheme.teal
+                            : TabbyTheme.clay,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${option.group.defaultCurrency} ${option.amount}',
+                style: amountStyle(context, positive: peerOwesMeHere)
+                    .copyWith(fontSize: 15),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                tooltip: 'Settle this debt',
+                icon: const Icon(Icons.handshake_outlined, size: 20),
+                color: TabbyTheme.dim,
+                onPressed: () => _openSettle(context, ref),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _openSettle(BuildContext context, WidgetRef ref) async {
+    String nameFor(String id) {
+      if (id == myId) return 'You';
+      if (id == peerId) return peerName;
+      return 'Someone';
+    }
+
+    await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => SettleSheet(
+        groupId: option.group.id,
+        fromProfileId: option.fromProfileId,
+        toProfileId: option.toProfileId,
+        fromName: nameFor(option.fromProfileId),
+        toName: nameFor(option.toProfileId),
+        suggestedAmount: option.amount,
+        currency: option.group.defaultCurrency,
       ),
     );
   }
