@@ -90,11 +90,25 @@ class _ExpenseActionsMenu extends ConsumerWidget {
       tooltip: 'Expense actions',
       icon: const Icon(Icons.more_vert),
       onSelected: (v) async {
-        if (v == 'delete') {
-          await _confirmDelete(context, ref);
+        switch (v) {
+          case 'edit':
+            context.go(
+                '/group/$groupId/expense/${expense.id}/edit');
+            break;
+          case 'delete':
+            await _confirmDelete(context, ref);
+            break;
         }
       },
       itemBuilder: (_) => const [
+        PopupMenuItem(
+          value: 'edit',
+          child: Row(children: [
+            Icon(Icons.edit_outlined, size: 18),
+            SizedBox(width: 12),
+            Text('Edit expense'),
+          ]),
+        ),
         PopupMenuItem(
           value: 'delete',
           child: Row(children: [

@@ -38,6 +38,13 @@ class SettlementsRepository {
         .toList();
   }
 
+  /// Hard-delete a settlement. Either party can delete (gated by RLS in
+  /// migration 0005); the AFTER DELETE trigger purges the matching `settle`
+  /// activity row so the feed doesn't keep claiming the payment happened.
+  Future<void> delete(String id) async {
+    await _client.from('settlements').delete().eq('id', id);
+  }
+
   /// Record an explicit payment between two members of a group. RLS allows
   /// the insert as long as the caller is `from_profile` or `to_profile` (so
   /// either side of the payment can log it). The server-side trigger writes

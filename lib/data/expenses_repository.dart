@@ -108,6 +108,41 @@ class ExpensesRepository {
         .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
         .eq('id', expenseId);
   }
+
+  /// Atomic edit. Replaces the expense row's fields AND its shares in one
+  /// transaction via the `update_expense_with_shares` RPC — the validate
+  /// constraint trigger is deferred so the swap is safe. The RPC enforces
+  /// "only the creator can edit" itself, so we don't need to duplicate
+  /// that check here.
+  Future<void> update({
+    required String expenseId,
+    required String description,
+    required Decimal amount,
+    required String currency,
+    required Decimal fxToGroup,
+    required DateTime paidAt,
+    required String category,
+    String? note,
+    required SplitResult split,
+  }) async {
+    await _client.rpc('update_expense_with_shares', params: {
+      'p_expense_id': expenseId,
+      'p_description': description,
+      'p_amount': amount.toString(),
+      'p_currency': currency,
+      'p_fx_to_group': fxToGroup.toString(),
+      'p_paid_at': paidAt.toIso8601String().substring(0, 10),
+      'p_category': category,
+      'p_note': note,
+      'p_shares': split.shares
+          .map((s) => {
+                'profile_id': s.profileId,
+                'paid_share': s.paidShare.toString(),
+                'owed_share': s.owedShare.toString(),
+              })
+          .toList(),
+    });
+  }
 }
 
 final expensesRepositoryProvider = Provider<ExpensesRepository>((ref) {

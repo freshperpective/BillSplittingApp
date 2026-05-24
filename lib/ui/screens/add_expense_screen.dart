@@ -13,8 +13,16 @@ import '../../data/supabase_client.dart';
 import '../theme/tabby_theme.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
-  const AddExpenseScreen({super.key, required this.groupId});
+  /// Both create and edit. When [expenseId] is provided the screen
+  /// pre-populates from the existing expense and the save path becomes an
+  /// update (atomic via the `update_expense_with_shares` RPC). When null,
+  /// it's a brand-new expense.
+  const AddExpenseScreen({super.key, required this.groupId, this.expenseId});
+
   final String groupId;
+  final String? expenseId;
+
+  bool get isEditing => expenseId != null;
 
   @override
   ConsumerState<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -42,6 +50,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   String _currency = 'INR';
   bool _saving = false;
   String? _error;
+
+  /// When editing, the original expense whose date we preserve on save.
+  /// Set once when pre-population runs and never mutated after.
+  Expense? _editing;
+  DateTime? _originalPaidAt;
+  String? _originalCategory;
+  String? _originalNote;
+
+  /// Pre-population guard. The build method runs every frame; we only
+  /// want to copy the existing expense into form state once (otherwise
+  /// every keystroke would clobber the user's edits).
+  bool _prepopulated = false;
 
   @override
   void dispose() {
@@ -213,6 +233,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   Widget build(BuildContext context) {
     final members = ref.watch(groupMembersProvider(widget.groupId));
     final group = ref.watch(groupByIdProvider(widget.groupId));
+    // For edit mode: pull from the cached expenses provider. Coming from
+    // the detail screen guarantees the cache is warm.
+    final expenses = widget.isEditing
+        ? ref.watch(groupExpensesProvider(widget.groupId))
+        : null;
 
     // Defensive: archived groups should never reach this screen via the FAB
     // (it's hidden), but route deep-links / hot-reload races could still
@@ -222,10 +247,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New expense'),
+        title: Text(widget.isEditing ? 'Edit expense' : 'New expense'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.go('/group/${widget.groupId}'),
+          onPressed: () => _close(),
         ),
       ),
       body: isArchived
@@ -235,12 +260,79 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Failed: $e')),
               data: (list) {
+                if (widget.isEditing && !_prepopulated) {
+                  final expense = expenses?.valueOrNull
+                      ?.where((e) => e.id == widget.expenseId)
+                      .cast<Expense?>()
+                      .firstWhere((_) => true, orElse: () => null);
+                  if (expense == null) {
+                    // Expense isn't in cache yet — show spinner; the
+                    // provider will resolve and rebuild.
+                    return const Center(
+                        child: CircularProgressIndicator());
+                  }
+                  _prepopulateFrom(expense, list);
+                  // _prepopulateFrom sets _prepopulated; fall through.
+                }
                 _payerId ??=
                     ref.read(currentUserProvider)?.id ?? list.first.id;
                 return _buildForm(list);
               },
             ),
     );
+  }
+
+  /// Navigate back. In edit mode we go to the detail screen we came from;
+  /// in create mode, back to the group list. Done via context.go so the
+  /// stack stays clean either way.
+  void _close() {
+    if (widget.isEditing) {
+      context.go(
+          '/group/${widget.groupId}/expense/${widget.expenseId}');
+    } else {
+      context.go('/group/${widget.groupId}');
+    }
+  }
+
+  /// Copy the existing expense into form state on the first frame where
+  /// both members and expense are available. Edit always lands in `adjust`
+  /// mode pre-filled with each member's current owed share; the user can
+  /// switch modes if they want and the engine will recompute.
+  void _prepopulateFrom(Expense exp, List<Profile> members) {
+    _description.text = exp.description;
+    _amount.text = exp.amount.toString();
+    _currency = exp.currency;
+
+    // Pick the largest payer as the primary payer (the create UI assumes
+    // a single payer; in practice that's how every expense is created).
+    String? primaryPayer;
+    Decimal biggest = Decimal.zero;
+    for (final s in exp.shares) {
+      if (s.paidShare > biggest) {
+        biggest = s.paidShare;
+        primaryPayer = s.profileId;
+      }
+    }
+    _payerId = primaryPayer ?? members.first.id;
+
+    // Adjust mode: every member's controller gets their current owed
+    // share. We don't anchor anyone — the user can edit any field and
+    // the engine will rebuild from those amounts.
+    _mode = SplitMode.adjust;
+    _anchoredMembers.clear();
+    final owedByProfile = <String, Decimal>{
+      for (final s in exp.shares) s.profileId: s.owedShare,
+    };
+    for (final m in members) {
+      final v = owedByProfile[m.id] ?? Decimal.zero;
+      _controllerFor(m.id).text = v.toString();
+    }
+
+    _editing = exp;
+    _originalPaidAt = exp.paidAt;
+    _originalCategory = exp.category;
+    _originalNote = exp.note;
+    _prepopulated = true;
   }
 
   Widget _buildForm(List<Profile> members) {
@@ -363,7 +455,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2),
                   )
-                : const Text('Save expense'),
+                : Text(widget.isEditing ? 'Save changes' : 'Save expense'),
           ),
         ),
       ],
@@ -398,16 +490,33 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         participants: inputs,
       );
 
-      await ref.read(expensesRepositoryProvider).create(
-            groupId: widget.groupId,
-            description: _description.text.trim(),
-            amount: total,
-            currency: _currency,
-            fxToGroup: Decimal.one,
-            paidAt: DateTime.now(),
-            category: 'general',
-            split: split,
-          );
+      if (widget.isEditing) {
+        // Edit path: atomic RPC replaces row + shares in one transaction.
+        // Preserve the original paid-at date — there's no UI for editing
+        // it yet, and silently changing it would be surprising.
+        await ref.read(expensesRepositoryProvider).update(
+              expenseId: widget.expenseId!,
+              description: _description.text.trim(),
+              amount: total,
+              currency: _currency,
+              fxToGroup: Decimal.one,
+              paidAt: _originalPaidAt ?? DateTime.now(),
+              category: _originalCategory ?? 'general',
+              note: _originalNote,
+              split: split,
+            );
+      } else {
+        await ref.read(expensesRepositoryProvider).create(
+              groupId: widget.groupId,
+              description: _description.text.trim(),
+              amount: total,
+              currency: _currency,
+              fxToGroup: Decimal.one,
+              paidAt: DateTime.now(),
+              category: 'general',
+              split: split,
+            );
+      }
 
       ref.invalidate(groupExpensesProvider(widget.groupId));
       // Balance views (per-group strip + cross-group rollup) cache results
@@ -419,7 +528,16 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       ref.invalidate(activityFeedProvider);
       ref.invalidate(groupActivityProvider(widget.groupId));
 
-      if (mounted) context.go('/group/${widget.groupId}');
+      if (mounted) {
+        // After edit, return to the detail screen the user came from.
+        // After create, back to the group list.
+        if (widget.isEditing) {
+          context.go(
+              '/group/${widget.groupId}/expense/${widget.expenseId}');
+        } else {
+          context.go('/group/${widget.groupId}');
+        }
+      }
     } catch (e) {
       setState(
           () => _error = e.toString().replaceFirst('Exception: ', ''));

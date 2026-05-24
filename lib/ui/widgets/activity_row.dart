@@ -106,8 +106,9 @@ class ActivityRow extends StatelessWidget {
   }
 
   /// Tap-throughs where they make sense: an expense event goes to the
-  /// expense detail; group events go to the group; deletion/settle have
-  /// no detail page yet.
+  /// expense detail; a settle event goes to the settlement detail (where
+  /// the participants can undo it); group events go to the group; the
+  /// expense.delete event has no live target so it's not tappable.
   VoidCallback? _onTap(BuildContext context) {
     switch (event.kind) {
       case ActivityKind.expenseAdd:
@@ -116,12 +117,16 @@ class ActivityRow extends StatelessWidget {
         return () => context.go(
               '/group/${event.groupId}/expense/${event.targetId}',
             );
+      case ActivityKind.settle:
+        if (event.groupId == null) return null;
+        return () => context.go(
+              '/group/${event.groupId}/settlement/${event.targetId}',
+            );
       case ActivityKind.groupCreate:
       case ActivityKind.groupMemberAdd:
         if (event.groupId == null) return null;
         return () => context.go('/group/${event.groupId}');
       case ActivityKind.expenseDelete:
-      case ActivityKind.settle:
         return null;
     }
   }

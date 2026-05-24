@@ -8,6 +8,7 @@ import 'screens/group_detail_screen.dart';
 import 'screens/home_shell.dart';
 import 'screens/add_expense_screen.dart';
 import 'screens/expense_detail_screen.dart';
+import 'screens/settlement_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -44,6 +45,22 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (_, state) => ExpenseDetailScreen(
                   groupId: state.pathParameters['id']!,
                   expenseId: state.pathParameters['expenseId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (_, state) => AddExpenseScreen(
+                      groupId: state.pathParameters['id']!,
+                      expenseId: state.pathParameters['expenseId']!,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'settlement/:settlementId',
+                builder: (_, state) => SettlementDetailScreen(
+                  groupId: state.pathParameters['id']!,
+                  settlementId: state.pathParameters['settlementId']!,
                 ),
               ),
             ],
