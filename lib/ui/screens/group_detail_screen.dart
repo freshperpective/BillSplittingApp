@@ -11,6 +11,7 @@ import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
 import '../../data/supabase_client.dart';
 import '../theme/tabby_theme.dart';
+import '../widgets/settle_sheet.dart';
 
 class GroupDetailScreen extends ConsumerWidget {
   const GroupDetailScreen({super.key, required this.groupId});
@@ -423,6 +424,11 @@ class _GroupBalanceStrip extends ConsumerWidget {
     if (me == null) return const SizedBox.shrink();
 
     final balanceAsync = ref.watch(groupBalanceProvider(groupId));
+    // We need the group's currency to pre-fill the settle sheet. Watching
+    // here is essentially free — the parent already watches the same family
+    // member, so Riverpod dedupes the request.
+    final group = ref.watch(groupByIdProvider(groupId));
+    final currency = group.valueOrNull?.defaultCurrency ?? 'INR';
 
     return balanceAsync.when(
       // Loading: take up no space so the list doesn't jitter on first load.
@@ -442,7 +448,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           decoration: BoxDecoration(
             color: TabbyTheme.amber.withOpacity(0.14),
             borderRadius: BorderRadius.circular(14),
@@ -457,34 +463,76 @@ class _GroupBalanceStrip extends ConsumerWidget {
               final label = theyOweMe
                   ? '$otherName owes you'
                   : 'You owe $otherName';
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Row(
-                  children: [
-                    Icon(
-                      theyOweMe ? Icons.south_west : Icons.north_east,
-                      size: 16,
-                      color: theyOweMe
-                          ? TabbyTheme.teal
-                          : TabbyTheme.clay,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(label,
-                          style: const TextStyle(fontSize: 14)),
-                    ),
-                    Text(
-                      t.amount.toString(),
-                      style: amountStyle(context, positive: theyOweMe)
-                          .copyWith(fontSize: 16),
-                    ),
-                  ],
+              return InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => _openSettleSheet(
+                  context,
+                  fromId: t.from,
+                  toId: t.to,
+                  fromName: t.from == me ? 'You' : _name(t.from),
+                  toName: t.to == me ? 'You' : _name(t.to),
+                  amount: t.amount,
+                  currency: currency,
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                  child: Row(
+                    children: [
+                      Icon(
+                        theyOweMe ? Icons.south_west : Icons.north_east,
+                        size: 16,
+                        color: theyOweMe
+                            ? TabbyTheme.teal
+                            : TabbyTheme.clay,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(label,
+                            style: const TextStyle(fontSize: 14)),
+                      ),
+                      Text(
+                        t.amount.toString(),
+                        style: amountStyle(context, positive: theyOweMe)
+                            .copyWith(fontSize: 16),
+                      ),
+                      const SizedBox(width: 6),
+                      // Subtle settle affordance — the whole row is tappable
+                      // but the handshake icon makes the verb unambiguous.
+                      const Icon(Icons.handshake_outlined,
+                          size: 16, color: TabbyTheme.dim),
+                    ],
+                  ),
                 ),
               );
             }).toList(),
           ),
         );
       },
+    );
+  }
+
+  void _openSettleSheet(
+    BuildContext context, {
+    required String fromId,
+    required String toId,
+    required String fromName,
+    required String toName,
+    required Decimal amount,
+    required String currency,
+  }) {
+    showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => SettleSheet(
+        groupId: groupId,
+        fromProfileId: fromId,
+        toProfileId: toId,
+        fromName: fromName,
+        toName: toName,
+        suggestedAmount: amount,
+        currency: currency,
+      ),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -35,6 +36,34 @@ class SettlementsRepository {
         .cast<Map<String, dynamic>>()
         .map(Settlement.fromJson)
         .toList();
+  }
+
+  /// Record an explicit payment between two members of a group. RLS allows
+  /// the insert as long as the caller is `from_profile` or `to_profile` (so
+  /// either side of the payment can log it). The server-side trigger writes
+  /// the matching activity row, so the caller only has to invalidate read
+  /// providers afterwards.
+  Future<Settlement> create({
+    required String groupId,
+    required String fromProfile,
+    required String toProfile,
+    required Decimal amount,
+    required String currency,
+    String? note,
+  }) async {
+    final row = await _client
+        .from('settlements')
+        .insert({
+          'group_id': groupId,
+          'from_profile': fromProfile,
+          'to_profile': toProfile,
+          'amount': amount.toString(),
+          'currency': currency,
+          'note': note,
+        })
+        .select()
+        .single();
+    return Settlement.fromJson(row);
   }
 }
 
