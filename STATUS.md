@@ -2,7 +2,7 @@
 
 *Last updated 2026-05-25. Keep this file current: update it in the same commit as the feature it describes.*
 
-> **Session summary (2026-05-25):** shipped multi-currency (FX snapshot at entry, balance math conversion, 14-currency picker defaulting to group currency) and receipt photos (private Storage bucket + RLS, `ReceiptsRepository`, horizontal thumbnail strip with full-screen viewer on expense detail). Both need Supabase Studio steps: run migration 0009 and the bucket is created by the migration itself.
+> **Session summary (2026-05-25):** shipped multi-currency, receipt photos, splash screen, simplify-debts toggle, and archive UX polish. Multi-currency: FX snapshot at entry, balance math conversion, 14-currency picker defaulting to group currency. Receipts: private Storage bucket + RLS, `ReceiptsRepository`, horizontal thumbnail strip with full-screen viewer on expense detail (run migration 0009). Splash: `flutter_native_splash` generates warm-paper (#FBFAF6) and dark (#11151A) backgrounds for Android + iOS. Simplify-debts: toggle in the group balance strip switches between "Your transfers" (simplified, tappable → SettleSheet) and "Everyone's balance" (raw net positions). Archive polish: archived section in Groups tab is now a collapsible `ExpansionTile` showing the count; New Group currency picker expanded from 5 hardcoded codes to all 14 via `FxRates.supported`.
 
 ---
 
@@ -69,9 +69,9 @@ Private `receipts` Storage bucket + RLS (migration 0009). `ReceiptsRepository` (
 | Chore | Detail |
 |-------|--------|
 | **Disable email confirmation** | In Supabase Auth settings → disable "Confirm email" for magic-link flow, or users get stuck after sign-up. |
-| **`.gitattributes` for CRLF** | Add `* text=auto` + explicit `*.dart text eol=lf` so Windows dev doesn't flood `git status` with CRLF noise on platform files. |
+| ~~**`.gitattributes` for CRLF**~~ ✅ | `* text=auto` + `*.dart/sql/yaml/json/md text eol=lf`; platform dirs marked binary. |
 | **App icon** | Replace the default Flutter icon with the Tabby teal/amber mark on all densities (Android `mipmap-*`, iOS `AppIcon.appiconset`). Use `flutter_launcher_icons`. |
-| **Launch / splash screen** | Warm-paper background + wordmark; configured via `flutter_native_splash`. Prevents the white flash on cold start. |
+| ~~**Launch / splash screen**~~ ✅ | `flutter_native_splash` generates warm-paper (#FBFAF6) / dark (#11151A) backgrounds for Android + iOS. |
 | **Bundle IDs** | Set `com.tabby.app` (or chosen ID) in `android/app/build.gradle` and Xcode; must match what's registered in App Store Connect / Play Console. |
 
 ---
@@ -91,6 +91,4 @@ These only pay off once there's an install base.
 | **CSV export** | Dump a group's expenses as CSV for the "I want a spreadsheet" power user. Single endpoint, low effort, high goodwill. |
 | **Recurring expenses** | Scheduled entries (monthly rent, subscriptions). Needs a `recurrence_rule` column + a cron-like Edge Function or client-side scheduler. |
 | **Search** | Full-text search over expense descriptions. Postgres `tsvector` + GIN index on `expenses.description`; expose via RPC. |
-| **Simplify-debts toggle** | `BalanceCalculator.simplify()` already exists in `split_engine.dart`. Wire a toggle on the Balances tab or Group detail that switches between raw balances and the minimum-transfer graph. Low effort once the balance UI is stable. |
 | **Dark theme polish** | Audit `TabbyTheme` for hardcoded light-only colours; provide dark-mode `ColorScheme` variants. The warm-paper surface needs a proper dark analogue (`#11151A` per DESIGN.md). |
-| **Group archive view** | Groups tab already filters archived groups into a collapsed section; the archive action exists. What's missing is an "Archived groups" expansion tile and a way to unarchive. Low effort. |
