@@ -436,7 +436,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     selectedColor: TabbyTheme.teal.withOpacity(0.18),
                     labelStyle: TextStyle(
                       color:
-                          selected ? TabbyTheme.teal : TabbyTheme.dim,
+                          selected ? TabbyTheme.teal : TabbyTheme.dimOf(context),
                       fontWeight: selected
                           ? FontWeight.w600
                           : FontWeight.w400,
@@ -651,17 +651,17 @@ class _MemberInputList extends StatelessWidget {
               if (preview != null)
                 Text(
                   preview,
-                  style: const TextStyle(
-                      color: TabbyTheme.dim, fontSize: 12),
+                  style: TextStyle(
+                      color: TabbyTheme.dimOf(context), fontSize: 12),
                 ),
             ],
           ),
           if (isAdjust)
-            const Padding(
-              padding: EdgeInsets.only(top: 2, bottom: 2),
+            Padding(
+              padding: const EdgeInsets.only(top: 2, bottom: 2),
               child: Text(
                 'Type one to anchor it; the rest re-balance.',
-                style: TextStyle(color: TabbyTheme.dim, fontSize: 11),
+                style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 11),
               ),
             ),
           const SizedBox(height: 4),
@@ -706,7 +706,9 @@ class _MemberInputList extends StatelessWidget {
                           suffixText: _suffixFor(mode),
                           hintText: '0',
                           filled: true,
-                          fillColor: Colors.white,
+                          // Use the theme's card-fill so these inputs
+                          // adapt to dark mode (overrides global fillColor).
+                          fillColor: TabbyTheme.cardFillOf(context),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide.none,
@@ -769,8 +771,8 @@ class _ArchivedNotice extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.archive_outlined,
-                size: 48, color: TabbyTheme.dim),
+            Icon(Icons.archive_outlined,
+                size: 48, color: TabbyTheme.dimOf(context)),
             const SizedBox(height: 12),
             Text("This group is archived.",
                 style: Theme.of(context).textTheme.headlineSmall),
@@ -778,7 +780,7 @@ class _ArchivedNotice extends StatelessWidget {
             const Text(
               "Unarchive it from the group page to add new expenses.",
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dim),
+              style: TextStyle(color: TabbyTheme.dimOf(context)),
             ),
             const SizedBox(height: 18),
             FilledButton(

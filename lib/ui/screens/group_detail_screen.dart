@@ -362,13 +362,13 @@ class _GroupMetaLine extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, size: 14, color: TabbyTheme.dim),
+          Icon(Icons.info_outline, size: 14, color: TabbyTheme.dimOf(context)),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               'Created by $creatorLabel · ${dateFmt.format(group.createdAt.toLocal())}',
-              style: const TextStyle(
-                  color: TabbyTheme.dim, fontSize: 12),
+              style: TextStyle(
+                  color: TabbyTheme.dimOf(context), fontSize: 12),
             ),
           ),
         ],
@@ -385,15 +385,16 @@ class _ArchivedBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: TabbyTheme.mist.withOpacity(0.6),
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: Row(
-        children: const [
-          Icon(Icons.archive_outlined, size: 16, color: TabbyTheme.dim),
-          SizedBox(width: 8),
+        children: [
+          Icon(Icons.archive_outlined,
+              size: 16, color: TabbyTheme.dimOf(context)),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               "Archived — read-only. Unarchive to add new expenses.",
-              style: TextStyle(color: TabbyTheme.dim, fontSize: 13),
+              style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 13),
             ),
           ),
         ],
@@ -474,7 +475,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                         ? Icons.people_outline
                         : Icons.account_tree_outlined,
                     size: 16,
-                    color: TabbyTheme.dim,
+                    color: TabbyTheme.dimOf(context),
                   ),
                 ),
               ),
@@ -503,8 +504,8 @@ class _GroupBalanceStrip extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           'Your transfers',
-                          style: const TextStyle(
-                              color: TabbyTheme.dim, fontSize: 11),
+                          style: TextStyle(
+                              color: TabbyTheme.dimOf(context), fontSize: 11),
                         ),
                       ),
                       toggleButton(),
@@ -558,8 +559,8 @@ class _GroupBalanceStrip extends ConsumerWidget {
                                 .copyWith(fontSize: 16),
                           ),
                           const SizedBox(width: 6),
-                          const Icon(Icons.handshake_outlined,
-                              size: 16, color: TabbyTheme.dim),
+                          Icon(Icons.handshake_outlined,
+                              size: 16, color: TabbyTheme.dimOf(context)),
                         ],
                       ),
                     ),
@@ -595,8 +596,8 @@ class _GroupBalanceStrip extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         'Everyone\'s balance',
-                        style: const TextStyle(
-                            color: TabbyTheme.dim, fontSize: 11),
+                        style: TextStyle(
+                            color: TabbyTheme.dimOf(context), fontSize: 11),
                       ),
                     ),
                     toggleButton(),
@@ -768,8 +769,8 @@ class _ExpenseRow extends StatelessWidget {
           children: [
             Text(
               'Paid by $payerLabel · ${expense.currency} ${expense.amount}',
-              style: const TextStyle(
-                  color: TabbyTheme.dim, fontSize: 12),
+              style: TextStyle(
+                  color: TabbyTheme.dimOf(context), fontSize: 12),
             ),
             const SizedBox(height: 2),
             Text(
@@ -777,15 +778,15 @@ class _ExpenseRow extends StatelessWidget {
               // "when did someone log this into the app", useful when an
               // expense gets entered days after the fact.
               'added ${relativeTime(expense.createdAt)}',
-              style: const TextStyle(
-                  color: TabbyTheme.dim, fontSize: 11),
+              style: TextStyle(
+                  color: TabbyTheme.dimOf(context), fontSize: 11),
             ),
           ],
         ),
         isThreeLine: true,
         trailing: youAreZero
             ? Text('settled',
-                style: TextStyle(color: TabbyTheme.dim, fontSize: 12))
+                style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 12))
             : Text(
                 (youArePositive ? '+' : '−') +
                     expense.currency +
@@ -849,7 +850,7 @@ class _GroupActivitySheet extends ConsumerWidget {
               height: 4,
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: TabbyTheme.mist,
+                color: Theme.of(context).colorScheme.outlineVariant,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -883,7 +884,7 @@ class _GroupActivitySheet extends ConsumerWidget {
                     child: Center(
                       child: Text(
                         "Nothing's happened in this group yet.",
-                        style: TextStyle(color: TabbyTheme.dim),
+                        style: TextStyle(color: TabbyTheme.dimOf(context)),
                       ),
                     ),
                   );
@@ -1150,8 +1151,8 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
                 "This group is archived — adding members is paused.",
-                style: const TextStyle(
-                    color: TabbyTheme.dim, fontSize: 13),
+                style: TextStyle(
+                    color: TabbyTheme.dimOf(context), fontSize: 13),
               ),
             ),
           Row(
@@ -1266,8 +1267,8 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                       ],
                     ),
                     subtitle: Text(m.defaultCurrency,
-                        style: const TextStyle(
-                            color: TabbyTheme.dim, fontSize: 12)),
+                        style: TextStyle(
+                            color: TabbyTheme.dimOf(context), fontSize: 12)),
                     trailing: showLeave
                         ? IconButton(
                             tooltip: 'Leave group',
@@ -1315,7 +1316,7 @@ class _GroupEmpty extends StatelessWidget {
             Text(
               'Tap the button below to add the first one.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dim),
+              style: TextStyle(color: TabbyTheme.dimOf(context)),
             ),
           ],
         ),

@@ -57,7 +57,7 @@ class GroupsTab extends ConsumerWidget {
                     child: Text(
                       'No active groups — bring one back from Archived or '
                       'start something new.',
-                      style: TextStyle(color: TabbyTheme.dim),
+                      style: TextStyle(color: TabbyTheme.dimOf(context)),
                     ),
                   )
                 else
@@ -77,17 +77,17 @@ class GroupsTab extends ConsumerWidget {
                     // Remove the default top/bottom divider lines.
                     shape: const Border(),
                     collapsedShape: const Border(),
-                    leading: const Icon(Icons.archive_outlined,
-                        size: 16, color: TabbyTheme.dim),
+                    leading: Icon(Icons.archive_outlined,
+                        size: 16, color: TabbyTheme.dimOf(context)),
                     title: Text(
                       'Archived (${archived.length})',
                       style: Theme.of(context)
                           .textTheme
                           .titleSmall
-                          ?.copyWith(color: TabbyTheme.dim),
+                          ?.copyWith(color: TabbyTheme.dimOf(context)),
                     ),
-                    iconColor: TabbyTheme.dim,
-                    collapsedIconColor: TabbyTheme.dim,
+                    iconColor: TabbyTheme.dimOf(context),
+                    collapsedIconColor: TabbyTheme.dimOf(context),
                     children: [
                       for (final g in archived) ...[
                         _GroupCard(group: g, archived: true),
@@ -144,8 +144,8 @@ class _GroupCard extends StatelessWidget {
         subtitle: Row(
           children: [
             Text(group.defaultCurrency,
-                style: const TextStyle(
-                    color: TabbyTheme.dim, fontSize: 12)),
+                style: TextStyle(
+                    color: TabbyTheme.dimOf(context), fontSize: 12)),
             if (archived) ...[
               const SizedBox(width: 8),
               Container(
@@ -155,16 +155,16 @@ class _GroupCard extends StatelessWidget {
                   color: TabbyTheme.mist,
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text('archived',
+                child: Text('archived',
                     style: TextStyle(
-                        color: TabbyTheme.dim,
+                        color: TabbyTheme.dimOf(context),
                         fontSize: 10,
                         fontWeight: FontWeight.w500)),
               ),
             ],
           ],
         ),
-        trailing: const Icon(Icons.chevron_right, color: TabbyTheme.dim),
+        trailing: Icon(Icons.chevron_right, color: TabbyTheme.dimOf(context)),
         onTap: () => context.go('/group/${group.id}'),
       ),
     );
@@ -192,7 +192,7 @@ class _NoGroups extends StatelessWidget {
             Text(
               'Start a group for the trip, the flat, or the dinner club.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dim),
+              style: TextStyle(color: TabbyTheme.dimOf(context)),
             ),
           ],
         ),

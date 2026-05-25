@@ -236,33 +236,33 @@ class _ExpenseDetailBody extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.person_outline,
-                      size: 16, color: TabbyTheme.dim),
+                  Icon(Icons.person_outline,
+                      size: 16, color: TabbyTheme.dimOf(context)),
                   const SizedBox(width: 4),
                   Text('Paid by $payerLabel',
-                      style: const TextStyle(
-                          color: TabbyTheme.dim, fontSize: 13)),
+                      style: TextStyle(
+                          color: TabbyTheme.dimOf(context), fontSize: 13)),
                   const SizedBox(width: 16),
-                  const Icon(Icons.event,
-                      size: 16, color: TabbyTheme.dim),
+                  Icon(Icons.event,
+                      size: 16, color: TabbyTheme.dimOf(context)),
                   const SizedBox(width: 4),
                   Text(dateFmt.format(expense.paidAt),
-                      style: const TextStyle(
-                          color: TabbyTheme.dim, fontSize: 13)),
+                      style: TextStyle(
+                          color: TabbyTheme.dimOf(context), fontSize: 13)),
                 ],
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Icon(Icons.schedule_outlined,
-                      size: 14, color: TabbyTheme.dim),
+                  Icon(Icons.schedule_outlined,
+                      size: 14, color: TabbyTheme.dimOf(context)),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'Added ${createdFmt.format(expense.createdAt.toLocal())} '
                       'by ${_name(expense.createdBy)}',
-                      style: const TextStyle(
-                          color: TabbyTheme.dim, fontSize: 12),
+                      style: TextStyle(
+                          color: TabbyTheme.dimOf(context), fontSize: 12),
                     ),
                   ),
                 ],
@@ -313,8 +313,8 @@ class _ExpenseDetailBody extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         'Owes ${expense.currency} ${share.owedShare}',
-                        style: const TextStyle(
-                            color: TabbyTheme.dim, fontSize: 12),
+                        style: TextStyle(
+                            color: TabbyTheme.dimOf(context), fontSize: 12),
                       ),
                     ],
                   ),
@@ -615,9 +615,9 @@ class _ReceiptThumbnail extends StatelessWidget {
                     color: TabbyTheme.amber.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.broken_image_outlined,
-                    color: TabbyTheme.dim,
+                    color: TabbyTheme.dimOf(context),
                   ),
                 ),
               ),
@@ -676,7 +676,7 @@ class _AddPhotoButton extends StatelessWidget {
           children: [
             Icon(
               Icons.add_photo_alternate_outlined,
-              color: uploading ? TabbyTheme.dim : TabbyTheme.amber,
+              color: uploading ? TabbyTheme.dimOf(context) : TabbyTheme.amber,
               size: 28,
             ),
             const SizedBox(height: 4),
@@ -684,7 +684,7 @@ class _AddPhotoButton extends StatelessWidget {
               'Add',
               style: TextStyle(
                 fontSize: 11,
-                color: uploading ? TabbyTheme.dim : TabbyTheme.amber,
+                color: uploading ? TabbyTheme.dimOf(context) : TabbyTheme.amber,
               ),
             ),
           ],
@@ -705,8 +705,8 @@ class _MissingExpense extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.help_outline,
-                size: 48, color: TabbyTheme.dim),
+            Icon(Icons.help_outline,
+                size: 48, color: TabbyTheme.dimOf(context)),
             const SizedBox(height: 12),
             Text("Couldn't find that expense.",
                 style: Theme.of(context).textTheme.titleMedium),
@@ -714,7 +714,7 @@ class _MissingExpense extends StatelessWidget {
             const Text(
               'It may have been deleted. Go back to refresh the list.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dim),
+              style: TextStyle(color: TabbyTheme.dimOf(context)),
             ),
           ],
         ),

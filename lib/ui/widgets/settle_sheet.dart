@@ -142,10 +142,10 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                   child: _personChip(widget.fromName,
                       label: 'From', accent: TabbyTheme.clay),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Icon(Icons.arrow_forward,
-                      size: 18, color: TabbyTheme.dim),
+                      size: 18, color: TabbyTheme.dimOf(context)),
                 ),
                 Expanded(
                   child: _personChip(widget.toName,
@@ -164,9 +164,9 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 decoration: BoxDecoration(
-                  border: Border.all(color: TabbyTheme.mist),
+                  border: Border.all(color: TabbyTheme.borderOf(context)),
                   borderRadius: BorderRadius.circular(12),
-                  color: Colors.white,
+                  color: TabbyTheme.cardFillOf(context),
                 ),
                 child: Text(widget.currency,
                     style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -227,7 +227,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
       children: [
         Text(label,
             style:
-                const TextStyle(color: TabbyTheme.dim, fontSize: 11)),
+                TextStyle(color: TabbyTheme.dimOf(context), fontSize: 11)),
         const SizedBox(height: 2),
         Text(
           name,

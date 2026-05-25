@@ -90,11 +90,12 @@ class TabbyTheme {
     const darkSurface = Color(0xFF11151A);
     const darkSurfaceAlt = Color(0xFF1A1F26);
     const darkBorder = Color(0xFF252B33);
+    const darkTeal = Color(0xFF2BA68A); // lighter teal for dark-mode contrast
 
     final scheme = ColorScheme.fromSeed(
       seedColor: teal,
       brightness: Brightness.dark,
-      primary: const Color(0xFF2BA68A),
+      primary: darkTeal,
       secondary: amber,
       surface: darkSurface,
       error: clay,
@@ -108,6 +109,9 @@ class TabbyTheme {
         backgroundColor: darkSurface,
         foregroundColor: paper,
         elevation: 0,
+        // Keep the AppBar from picking up an elevation tint when the list
+        // scrolls underneath it — matches the light-theme behaviour.
+        scrolledUnderElevation: 0,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
@@ -120,14 +124,33 @@ class TabbyTheme {
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: Color(0xFF2BA68A),
+        backgroundColor: darkTeal,
         foregroundColor: darkSurface,
         elevation: 2,
         shape: StadiumBorder(),
       ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        // Slightly raised surface so fields stand out from the scaffold.
+        fillColor: darkSurfaceAlt,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: darkBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: darkBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: darkTeal, width: 1.5),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: darkSurface,
-        selectedItemColor: Color(0xFF2BA68A),
+        selectedItemColor: darkTeal,
         unselectedItemColor: Color(0xFF7A828D),
         type: BottomNavigationBarType.fixed,
       ),
@@ -135,6 +158,29 @@ class TabbyTheme {
           color: darkBorder, thickness: 1, space: 1),
     );
   }
+
+  // ── Context-aware semantic helpers ──────────────────────────────────────
+  //
+  // Use these instead of the raw static colour constants when you need a
+  // value that adapts between light and dark mode automatically.  The raw
+  // constants (teal, amber, clay …) are still fine for brand-colour accents
+  // that are intentionally the same in both modes.
+
+  /// Subdued text / icon colour — medium emphasis on the current surface.
+  /// Replaces hard-coded [dim] in places that must be readable on both
+  /// the light paper (#FBFAF6) and the dark ink (#11151A) backgrounds.
+  static Color dimOf(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurfaceVariant;
+
+  /// Card / container fill — one step above the scaffold surface.
+  /// Use instead of `Colors.white` (light) or hardcoded dark values.
+  static Color cardFillOf(BuildContext context) =>
+      Theme.of(context).colorScheme.surfaceContainerHighest;
+
+  /// Subtle border / separator colour that adapts to the current brightness.
+  /// Replaces [mist] in `Border.all(color: TabbyTheme.mist)` calls.
+  static Color borderOf(BuildContext context) =>
+      Theme.of(context).colorScheme.outlineVariant;
 
   static TextTheme _buildTextTheme(TextTheme base, Color onSurface) {
     final inter = GoogleFonts.interTextTheme(base).apply(

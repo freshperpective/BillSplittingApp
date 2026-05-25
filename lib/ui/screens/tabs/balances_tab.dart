@@ -124,7 +124,7 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Text('Your net position',
               style: TextStyle(
-                  color: TabbyTheme.dim,
+                  color: TabbyTheme.dimOf(context),
                   fontSize: 13,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 6),
@@ -133,7 +133,7 @@ class _SummaryCard extends StatelessWidget {
             style:
                 Theme.of(context).textTheme.displayMedium?.copyWith(
                       color: netZero
-                          ? TabbyTheme.dim
+                          ? TabbyTheme.dimOf(context)
                           : (netPositive
                               ? TabbyTheme.teal
                               : TabbyTheme.clay),
@@ -144,7 +144,7 @@ class _SummaryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               netPositive ? 'in your favor' : "you're behind",
-              style: const TextStyle(color: TabbyTheme.dim, fontSize: 13),
+              style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 13),
             ),
           ],
           const SizedBox(height: 16),
@@ -189,16 +189,16 @@ class _SummaryStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TabbyTheme.cardFillOf(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: TabbyTheme.mist),
+        border: Border.all(color: TabbyTheme.borderOf(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
-                  color: TabbyTheme.dim, fontSize: 12)),
+              style: TextStyle(
+                  color: TabbyTheme.dimOf(context), fontSize: 12)),
           const SizedBox(height: 2),
           Text(
             amount.toString(),
@@ -265,8 +265,8 @@ class _PeerCard extends ConsumerWidget {
                 style: amountStyle(context, positive: peerOwes),
               ),
               const SizedBox(width: 6),
-              const Icon(Icons.chevron_right,
-                  size: 18, color: TabbyTheme.dim),
+              Icon(Icons.chevron_right,
+                  size: 18, color: TabbyTheme.dimOf(context)),
             ],
           ),
         ),
@@ -353,7 +353,7 @@ class _PeerBreakdownSheet extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             'Broken down by group. Tap a row to open it, or use the handshake icon to settle.',
-            style: TextStyle(color: TabbyTheme.dim, fontSize: 12),
+            style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 12),
           ),
           const SizedBox(height: 14),
           optionsAsync.when(
@@ -374,8 +374,8 @@ class _PeerBreakdownSheet extends ConsumerWidget {
                     "No bilateral group balance with ${balance.peer.displayName}. "
                     "Their debt is routed through someone else by the simplifier — "
                     "settle that link from the group page first.",
-                    style: const TextStyle(
-                        color: TabbyTheme.dim, fontSize: 13),
+                    style: TextStyle(
+                        color: TabbyTheme.dimOf(context), fontSize: 13),
                   ),
                 );
               }
@@ -475,7 +475,7 @@ class _BreakdownRow extends ConsumerWidget {
               IconButton(
                 tooltip: 'Settle this debt',
                 icon: const Icon(Icons.handshake_outlined, size: 20),
-                color: TabbyTheme.dim,
+                color: TabbyTheme.dimOf(context),
                 onPressed: () => _openSettle(context, ref),
               ),
             ],
@@ -543,7 +543,7 @@ class _EmptyState extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: TabbyTheme.dim),
+                  ?.copyWith(color: TabbyTheme.dimOf(context)),
             ),
           ],
         ),

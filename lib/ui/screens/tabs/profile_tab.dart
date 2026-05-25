@@ -85,8 +85,8 @@ class _ProfileBody extends ConsumerWidget {
                               Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 2),
                       Text(email,
-                          style: const TextStyle(
-                              color: TabbyTheme.dim, fontSize: 12)),
+                          style: TextStyle(
+                              color: TabbyTheme.dimOf(context), fontSize: 12)),
                     ],
                   ),
                 ),
@@ -144,7 +144,7 @@ class _ProfileBody extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 'What other members see next to your expenses.',
-                style: TextStyle(color: TabbyTheme.dim, fontSize: 13),
+                style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 13),
               ),
               const SizedBox(height: 14),
               TextField(
@@ -276,7 +276,7 @@ class _SettingsTile extends StatelessWidget {
         leading: Icon(icon, color: TabbyTheme.teal),
         title: Text(title),
         subtitle: subtitle == null ? null : Text(subtitle!),
-        trailing: const Icon(Icons.chevron_right, color: TabbyTheme.dim),
+        trailing: Icon(Icons.chevron_right, color: TabbyTheme.dimOf(context)),
         onTap: onTap,
       ),
     );

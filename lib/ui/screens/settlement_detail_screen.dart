@@ -119,14 +119,14 @@ class _SettlementBody extends ConsumerWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.schedule_outlined,
-                      size: 14, color: TabbyTheme.dim),
+                  Icon(Icons.schedule_outlined,
+                      size: 14, color: TabbyTheme.dimOf(context)),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'Logged ${dateFmt.format(settlement.createdAt.toLocal())}',
-                      style: const TextStyle(
-                          color: TabbyTheme.dim, fontSize: 12),
+                      style: TextStyle(
+                          color: TabbyTheme.dimOf(context), fontSize: 12),
                     ),
                   ),
                 ],
@@ -137,9 +137,9 @@ class _SettlementBody extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: TabbyTheme.cardFillOf(context),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: TabbyTheme.mist),
+                    border: Border.all(color: TabbyTheme.borderOf(context)),
                   ),
                   child: Text(settlement.note!,
                       style: const TextStyle(fontSize: 13)),
@@ -165,7 +165,7 @@ class _SettlementBody extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               'Only the people involved in this payment can remove it.',
-              style: TextStyle(color: TabbyTheme.dim, fontSize: 12),
+              style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 12),
             ),
           ),
       ],
@@ -231,16 +231,16 @@ class _MissingSettlement extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.help_outline,
-                size: 48, color: TabbyTheme.dim),
+            Icon(Icons.help_outline,
+                size: 48, color: TabbyTheme.dimOf(context)),
             const SizedBox(height: 12),
             Text("Couldn't find that payment.",
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'It may have been deleted. Go back to refresh.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dim),
+              style: TextStyle(color: TabbyTheme.dimOf(context)),
             ),
           ],
         ),

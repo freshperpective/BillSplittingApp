@@ -90,7 +90,7 @@ class _EmptyState extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: TabbyTheme.dim),
+                  ?.copyWith(color: TabbyTheme.dimOf(context)),
             ),
           ],
         ),

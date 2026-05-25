@@ -82,7 +82,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               Text(
                 'A friendlier tab to keep.',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: TabbyTheme.dim,
+                      color: TabbyTheme.dimOf(context),
                     ),
               ),
               const SizedBox(height: 56),
@@ -162,7 +162,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
-                      ?.copyWith(color: TabbyTheme.dim),
+                      ?.copyWith(color: TabbyTheme.dimOf(context)),
                 ),
               ),
             ],

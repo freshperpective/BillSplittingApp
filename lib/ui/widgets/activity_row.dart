@@ -185,15 +185,15 @@ class ActivityRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       relativeTime(event.createdAt),
-                      style: const TextStyle(
-                          color: TabbyTheme.dim, fontSize: 12),
+                      style: TextStyle(
+                          color: TabbyTheme.dimOf(context), fontSize: 12),
                     ),
                   ],
                 ),
               ),
               if (tap != null)
-                const Icon(Icons.chevron_right,
-                    size: 18, color: TabbyTheme.dim),
+                Icon(Icons.chevron_right,
+                    size: 18, color: TabbyTheme.dimOf(context)),
             ],
           ),
         ),
