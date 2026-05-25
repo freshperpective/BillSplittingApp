@@ -1,0 +1,18 @@
+# Normalise all text files to LF in the repository.
+* text=auto
+
+# Dart source, SQL migrations, and project config: always LF.
+*.dart text eol=lf
+*.sql  text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+
+# Generated platform directories contain Windows/Mac native line endings
+# that should be left alone — don't touch them.
+android/** binary
+ios/**     binary
+macos/**   binary
+windows/** binary
+linux/**   binary
+web/**     binary
