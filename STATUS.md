@@ -2,6 +2,8 @@
 
 *Last updated 2026-05-25. Keep this file current: update it in the same commit as the feature it describes.*
 
+> **Session summary (2026-05-25):** shipped multi-currency (FX snapshot at entry, balance math conversion, 14-currency picker defaulting to group currency) and receipt photos (private Storage bucket + RLS, `ReceiptsRepository`, horizontal thumbnail strip with full-screen viewer on expense detail). Both need Supabase Studio steps: run migration 0009 and the bucket is created by the migration itself.
+
 ---
 
 ## Shipped
@@ -57,17 +59,11 @@ Everything below is committed (or sitting in the working tree as an uncommitted 
 
 These are the remaining items on the plate before the app is ready for TestFlight / Play Internal Testing.
 
-### Multi-currency (named v0.3 item, still outstanding)
-The schema is ready (`fx_to_group numeric(18,8)` on `expenses`; `currency` on both expenses and groups). What's needed:
-- Currency picker on the Add/Edit expense sheet (ISO-4217 list, searchable).
-- FX snapshot at entry time — hard-code a reasonable static table for MVP (USD/EUR/GBP/INR/JPY); user enters amount in the expense currency, app records `fx_to_group` at that moment.
-- Balance math: `groupBalanceProvider` must multiply each share by `fx_to_group` before summing so all positions are in the group's default currency.
-- Display: show the original currency + amount on expense rows; show converted amount in the balance strip.
+### ~~Multi-currency~~ ✅ shipped
+`lib/core/fx_rates.dart` — 14-currency static rate table. `BalanceCalculator.compute()` multiplies each share by `e.fxToGroup`. Add/Edit expense defaults currency to group default, computes `fxToGroup` via `FxRates.rate()` at save time. Balance strip shows currency code + properly rounded amounts.
 
-### Receipts (v0.3 item, not started)
-- Supabase Storage bucket `receipts`, private, with an RLS policy that gates reads to group members and writes to the expense creator.
-- `expense_receipts` join table (or a `receipt_urls text[]` column on `expenses` — decide based on whether per-receipt metadata is needed).
-- UI: image picker on Add/Edit expense (≤5 photos, 5 MB each); swipeable photo strip on Expense detail.
+### ~~Receipts~~ ✅ shipped (run migration 0009 in Supabase Studio)
+Private `receipts` Storage bucket + RLS (migration 0009). `ReceiptsRepository` (upload/list/delete with signed URLs). `_ReceiptStrip` on expense detail: horizontal scrollable thumbnails, full-screen `InteractiveViewer` on tap, delete button for creator, "Add" tile for creator (max 5).
 
 ### Production prep chores
 | Chore | Detail |
