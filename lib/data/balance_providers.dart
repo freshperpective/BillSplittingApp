@@ -12,6 +12,13 @@ import 'supabase_client.dart';
 // prior signed-in user doesn't leak into the new user's view. See the same
 // pattern in groups_repository.dart.
 
+/// Whether the group balance strip shows the minimum-transfer "simplified"
+/// plan or the raw per-member net positions.
+///
+/// Defaults to `true` (simplified). Toggled from the balance strip header;
+/// resets to `true` on app restart — no persistence needed for v1.
+final simplifyDebtsProvider = StateProvider<bool>((ref) => true);
+
 /// Settlements scoped to one group. Kept as its own provider so the
 /// group balance can be recomputed (via `ref.invalidate`) when a settlement
 /// is added without re-fetching expenses.

@@ -54,6 +54,20 @@ dev_dependencies:
   drift_dev: ^2.18.0
   custom_lint: ^0.6.4
   riverpod_lint: ^2.3.10
+  flutter_native_splash: ^2.4.7
+
+flutter_native_splash:
+  # Warm-paper background matching TabbyTheme.paper (#FBFAF6).
+  # No image yet — a solid colour beats the default white flash.
+  # Add `image: assets/images/splash_logo.png` once the icon asset lands.
+  color: "#FBFAF6"
+  color_dark: "#11151A"
+  android: true
+  ios: true
+  web: false
+  android_12:
+    color: "#FBFAF6"
+    color_dark: "#11151A"
 
 flutter:
   uses-material-design: true

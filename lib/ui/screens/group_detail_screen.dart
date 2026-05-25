@@ -441,81 +441,211 @@ class _GroupBalanceStrip extends ConsumerWidget {
       // and the calculator only fails on bad data the server already rejects.
       error: (_, __) => const SizedBox.shrink(),
       data: (balance) {
-        final myTransfers = balance.myTransfers(me);
-        if (myTransfers.isEmpty) {
-          // Either no expenses yet, or everyone's settled. Don't show
-          // "All settled" until there's at least one expense — otherwise
-          // it crowds the empty state.
-          if (balance.netByProfile.isEmpty) return const SizedBox.shrink();
-          return _settledChip(context);
+        // Either no expenses yet → nothing to show at all.
+        if (balance.netByProfile.isEmpty) return const SizedBox.shrink();
+
+        final simplified = ref.watch(simplifyDebtsProvider);
+        final decimals = Money.decimalsFor(balance.currency);
+
+        // Shared container decoration used by both views.
+        BoxDecoration stripDecoration() => BoxDecoration(
+              color: TabbyTheme.amber.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(14),
+              border:
+                  Border.all(color: TabbyTheme.amber.withOpacity(0.35)),
+            );
+
+        // Toggle button shown in the top-right corner of the strip.
+        // "account_tree" hints at the minimum-transfer graph; "people"
+        // hints at showing every member's raw position.
+        Widget toggleButton() => Tooltip(
+              message: simplified
+                  ? 'Show everyone\'s balance'
+                  : 'Show simplified transfers',
+              child: InkWell(
+                borderRadius: BorderRadius.circular(6),
+                onTap: () => ref
+                    .read(simplifyDebtsProvider.notifier)
+                    .state = !simplified,
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(
+                    simplified
+                        ? Icons.people_outline
+                        : Icons.account_tree_outlined,
+                    size: 16,
+                    color: TabbyTheme.dim,
+                  ),
+                ),
+              ),
+            );
+
+        // ── Simplified view (default) ──────────────────────────────────
+        // Shows only the transfers that involve the current user so the
+        // strip stays focused: "what do YOU need to do in this group?"
+        // Each row is tappable to open the settle sheet.
+        if (simplified) {
+          final myTransfers = balance.myTransfers(me);
+          if (myTransfers.isEmpty) return _settledChip(context);
+
+          return Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.fromLTRB(4, 2, 4, 4),
+            decoration: stripDecoration(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row: subtle label + toggle affordance.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 4, 4, 0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Your transfers',
+                          style: const TextStyle(
+                              color: TabbyTheme.dim, fontSize: 11),
+                        ),
+                      ),
+                      toggleButton(),
+                    ],
+                  ),
+                ),
+                ...myTransfers.map((t) {
+                  final theyOweMe = t.to == me;
+                  final otherId = theyOweMe ? t.from : t.to;
+                  final otherName = _name(otherId);
+                  final label = theyOweMe
+                      ? '$otherName owes you'
+                      : 'You owe $otherName';
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => _openSettleSheet(
+                      context,
+                      fromId: t.from,
+                      toId: t.to,
+                      fromName: t.from == me ? 'You' : _name(t.from),
+                      toName: t.to == me ? 'You' : _name(t.to),
+                      amount: t.amount,
+                      // balance.currency == group.defaultCurrency;
+                      // settlements are always recorded in group currency.
+                      currency: balance.currency,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 9),
+                      child: Row(
+                        children: [
+                          Icon(
+                            theyOweMe
+                                ? Icons.south_west
+                                : Icons.north_east,
+                            size: 16,
+                            color: theyOweMe
+                                ? TabbyTheme.teal
+                                : TabbyTheme.clay,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(label,
+                                style: const TextStyle(fontSize: 14)),
+                          ),
+                          Text(
+                            '${balance.currency} '
+                            '${t.amount.round(scale: decimals)}',
+                            style: amountStyle(context,
+                                    positive: theyOweMe)
+                                .copyWith(fontSize: 16),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.handshake_outlined,
+                              size: 16, color: TabbyTheme.dim),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          );
         }
+
+        // ── Raw / everyone view ────────────────────────────────────────
+        // Shows every member's net position in the group.
+        // Positive (teal) = they're owed money; negative (clay) = they owe.
+        // Not tappable — there's no unambiguous bilateral settle target.
+        final nets = balance.netByProfile.entries
+            .where((e) => e.value != Decimal.zero)
+            .toList()
+          ..sort((a, b) => b.value.compareTo(a.value)); // creditors first
+
+        if (nets.isEmpty) return _settledChip(context);
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          decoration: BoxDecoration(
-            color: TabbyTheme.amber.withOpacity(0.14),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: TabbyTheme.amber.withOpacity(0.35)),
-          ),
+          padding: const EdgeInsets.fromLTRB(4, 2, 4, 4),
+          decoration: stripDecoration(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: myTransfers.map((t) {
-              final theyOweMe = t.to == me;
-              final otherId = theyOweMe ? t.from : t.to;
-              final otherName = _name(otherId);
-              final label = theyOweMe
-                  ? '$otherName owes you'
-                  : 'You owe $otherName';
-              return InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () => _openSettleSheet(
-                  context,
-                  fromId: t.from,
-                  toId: t.to,
-                  fromName: t.from == me ? 'You' : _name(t.from),
-                  toName: t.to == me ? 'You' : _name(t.to),
-                  amount: t.amount,
-                  // balance.currency == group.defaultCurrency; settlements
-                  // are always recorded in the group currency so the math
-                  // stays consistent with the fxToGroup-converted balances.
-                  currency: balance.currency,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 4, 4, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Everyone\'s balance',
+                        style: const TextStyle(
+                            color: TabbyTheme.dim, fontSize: 11),
+                      ),
+                    ),
+                    toggleButton(),
+                  ],
                 ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+              ),
+              ...nets.map((entry) {
+                final isCreditor = entry.value > Decimal.zero;
+                final isMe = entry.key == me;
+                final displayName =
+                    isMe ? 'You' : _name(entry.key);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 9),
                   child: Row(
                     children: [
                       Icon(
-                        theyOweMe ? Icons.south_west : Icons.north_east,
+                        isCreditor
+                            ? Icons.south_west
+                            : Icons.north_east,
                         size: 16,
-                        color: theyOweMe
+                        color: isCreditor
                             ? TabbyTheme.teal
                             : TabbyTheme.clay,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(label,
-                            style: const TextStyle(fontSize: 14)),
+                        child: Text(
+                          displayName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isMe
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
                       ),
                       Text(
-                        // Round to the group currency's minor-unit precision
-                        // so JPY shows 0 decimals, USD/INR/etc. show 2.
                         '${balance.currency} '
-                        '${t.amount.round(scale: Money.decimalsFor(balance.currency))}',
-                        style: amountStyle(context, positive: theyOweMe)
+                        '${entry.value.abs().round(scale: decimals)}',
+                        style: amountStyle(context,
+                                positive: isCreditor)
                             .copyWith(fontSize: 16),
                       ),
-                      const SizedBox(width: 6),
-                      // Subtle settle affordance — the whole row is tappable
-                      // but the handshake icon makes the verb unambiguous.
-                      const Icon(Icons.handshake_outlined,
-                          size: 16, color: TabbyTheme.dim),
                     ],
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }),
+            ],
           ),
         );
       },
