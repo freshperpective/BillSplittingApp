@@ -8,11 +8,16 @@ import 'groups_repository.dart';
 import 'settlements_repository.dart';
 import 'supabase_client.dart';
 
+// Per-user providers watch `authStateProvider` so cached AsyncValue from a
+// prior signed-in user doesn't leak into the new user's view. See the same
+// pattern in groups_repository.dart.
+
 /// Settlements scoped to one group. Kept as its own provider so the
 /// group balance can be recomputed (via `ref.invalidate`) when a settlement
 /// is added without re-fetching expenses.
 final groupSettlementsProvider =
     FutureProvider.family<List<Settlement>, String>((ref, groupId) async {
+  ref.watch(authStateProvider);
   return ref.watch(settlementsRepositoryProvider).listForGroup(groupId);
 });
 
@@ -49,6 +54,7 @@ class GroupBalance {
 /// `ref.invalidate(groupBalanceProvider(groupId))` after edits.
 final groupBalanceProvider =
     FutureProvider.family<GroupBalance, String>((ref, groupId) async {
+  ref.watch(authStateProvider);
   // Watch both upstream providers so invalidating either (after add-expense
   // or add-settlement) cascades into a fresh balance computation.
   final expenses =
@@ -84,6 +90,7 @@ class PeerBalance {
 /// currencies will need explicit normalization in v0.3.
 final balancesRollupProvider =
     FutureProvider<List<PeerBalance>>((ref) async {
+  ref.watch(authStateProvider);
   final me = ref.watch(currentUserProvider);
   if (me == null) return const <PeerBalance>[];
 
@@ -161,6 +168,7 @@ class PeerSettleOption {
 /// settleable bilaterally without re-routing.
 final peerSettleOptionsProvider =
     FutureProvider.family<List<PeerSettleOption>, String>((ref, peerId) async {
+  ref.watch(authStateProvider);
   final me = ref.watch(currentUserProvider);
   if (me == null) return const <PeerSettleOption>[];
 

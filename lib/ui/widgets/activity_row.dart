@@ -85,8 +85,8 @@ class ActivityRow extends StatelessWidget {
         );
 
       case ActivityKind.groupCreate:
-        final name = payload['name'] ?? 'a group';
-        final emoji = payload['emoji'] ?? '';
+        final name = (payload['name'] as String?) ?? 'a group';
+        final emoji = (payload['emoji'] as String?) ?? '';
         final label = emoji.isEmpty ? name : '$emoji $name';
         return (
           icon: Icons.group_add_outlined,
@@ -101,6 +101,24 @@ class ActivityRow extends StatelessWidget {
           icon: Icons.person_add_outlined,
           tint: TabbyTheme.teal,
           text: '$actor added $who$groupSuffix',
+        );
+
+      case ActivityKind.groupMemberRemove:
+        final pid = payload['profile_id'] as String?;
+        final selfLeave = payload['self_leave'] == true;
+        if (selfLeave) {
+          // Actor left on their own. "You left" / "Aman left".
+          return (
+            icon: Icons.logout,
+            tint: TabbyTheme.clay,
+            text: '$actor left$groupSuffix',
+          );
+        }
+        final who = pid == null ? 'someone' : _personLabel(pid);
+        return (
+          icon: Icons.person_remove_outlined,
+          tint: TabbyTheme.clay,
+          text: '$actor removed $who$groupSuffix',
         );
     }
   }
@@ -124,6 +142,7 @@ class ActivityRow extends StatelessWidget {
             );
       case ActivityKind.groupCreate:
       case ActivityKind.groupMemberAdd:
+      case ActivityKind.groupMemberRemove:
         if (event.groupId == null) return null;
         return () => context.go('/group/${event.groupId}');
       case ActivityKind.expenseDelete:

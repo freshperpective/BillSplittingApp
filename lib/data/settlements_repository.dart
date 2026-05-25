@@ -41,8 +41,17 @@ class SettlementsRepository {
   /// Hard-delete a settlement. Either party can delete (gated by RLS in
   /// migration 0005); the AFTER DELETE trigger purges the matching `settle`
   /// activity row so the feed doesn't keep claiming the payment happened.
+  ///
+  /// Chains `.select()` to detect RLS-silent-success (PostgREST returns
+  /// success even when zero rows were affected). Raises in that case so
+  /// the UI doesn't show a misleading "deleted" snackbar.
   Future<void> delete(String id) async {
-    await _client.from('settlements').delete().eq('id', id);
+    final res =
+        await _client.from('settlements').delete().eq('id', id).select();
+    if (res is! List || res.isEmpty) {
+      throw Exception(
+          'Could not delete this payment. Only the people involved can.');
+    }
   }
 
   /// Record an explicit payment between two members of a group. RLS allows

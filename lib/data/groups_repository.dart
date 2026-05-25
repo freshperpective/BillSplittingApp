@@ -92,6 +92,33 @@ class GroupsRepository {
     });
   }
 
+  /// Owner removes a non-owner member from a group, or a member leaves on
+  /// their own. RLS (added in 0007) gates both paths; the activity trigger
+  /// writes a `group.member.remove` event. The leaving member loses read
+  /// access to the group's data after this returns — their historical
+  /// expense_shares stay put so the remaining members' balance math
+  /// continues to attribute the debt correctly.
+  Future<void> removeMember({
+    required String groupId,
+    required String profileId,
+  }) async {
+    // Same RLS-silent-success guard as deleteGroup. If 0007's policy
+    // rejects the row (caller isn't owner AND isn't the leaver) PostgREST
+    // returns success with zero rows affected; we raise instead.
+    final res = await _client
+        .from('group_members')
+        .delete()
+        .eq('group_id', groupId)
+        .eq('profile_id', profileId)
+        .select();
+    if (res is! List || res.isEmpty) {
+      throw Exception(
+          'Could not remove this member. Owners can remove non-owners, '
+          'and any member can leave on their own — anything else needs '
+          'a different action.');
+    }
+  }
+
   /// Single group by id. Used by GroupDetailScreen to know whether the
   /// group is archived without re-fetching the whole `myGroupsProvider`
   /// list. RLS already restricts this to groups the user can see.
@@ -142,8 +169,22 @@ class GroupsRepository {
   /// expenses, expense_shares via expense FK, settlements, activity_events
   /// — all set up with ON DELETE CASCADE in 0001). The DELETE policy added
   /// in 0004 gates this to owners.
+  ///
+  /// We chain `.select()` after the delete so PostgREST returns the rows
+  /// it actually deleted. If RLS filtered them all out (caller isn't an
+  /// owner, or the row's already gone), the result is empty and we raise
+  /// instead of returning a misleading success.
   Future<void> deleteGroup(String groupId) async {
-    await _client.from('groups').delete().eq('id', groupId);
+    final res = await _client
+        .from('groups')
+        .delete()
+        .eq('id', groupId)
+        .select();
+    if (res is! List || res.isEmpty) {
+      throw Exception(
+          'Could not delete this group. You may not have permission, '
+          'or it may already be gone.');
+    }
   }
 }
 
@@ -151,14 +192,22 @@ final groupsRepositoryProvider = Provider<GroupsRepository>((ref) {
   return GroupsRepository(ref.watch(supabaseClientProvider));
 });
 
+// Every per-user provider in this file watches `authStateProvider` so that
+// when sign-in / sign-out happens, the cached AsyncValue from the prior
+// session doesn't leak into the new one. Without this, a user who was
+// previously signed in as the owner would see "owner" cached when they
+// later signed in as a different account on the same device.
+
 /// All groups the current user is in, most-recent first.
 final myGroupsProvider = FutureProvider<List<Group>>((ref) async {
+  ref.watch(authStateProvider);
   return ref.watch(groupsRepositoryProvider).listMyGroups();
 });
 
 /// Members (profiles) of one group. UI invalidates this after add-member.
 final groupMembersProvider =
     FutureProvider.family<List<Profile>, String>((ref, groupId) async {
+  ref.watch(authStateProvider);
   return ref.watch(groupsRepositoryProvider).listMembers(groupId);
 });
 
@@ -166,6 +215,7 @@ final groupMembersProvider =
 /// detail screen reflects the new state without a full Groups-tab refresh.
 final groupByIdProvider =
     FutureProvider.family<Group, String>((ref, id) async {
+  ref.watch(authStateProvider);
   return ref.watch(groupsRepositoryProvider).getGroup(id);
 });
 
@@ -173,5 +223,6 @@ final groupByIdProvider =
 /// (or not signed in). Used to gate owner-only UI affordances.
 final myRoleInGroupProvider =
     FutureProvider.family<String?, String>((ref, groupId) async {
+  ref.watch(authStateProvider);
   return ref.watch(groupsRepositoryProvider).getMyRole(groupId);
 });

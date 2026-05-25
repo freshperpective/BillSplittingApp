@@ -103,10 +103,18 @@ class ExpensesRepository {
   }
 
   Future<void> softDelete(String expenseId) async {
-    await _client
+    // `.select()` makes the operation fail loudly when RLS filters us
+    // out (caller isn't the creator). Without it the update silently
+    // affects zero rows and we'd show a "deleted" snackbar that lied.
+    final res = await _client
         .from('expenses')
         .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('id', expenseId);
+        .eq('id', expenseId)
+        .select();
+    if (res is! List || res.isEmpty) {
+      throw Exception(
+          'Could not delete this expense. Only the creator can.');
+    }
   }
 
   /// Atomic edit. Replaces the expense row's fields AND its shares in one
@@ -151,7 +159,11 @@ final expensesRepositoryProvider = Provider<ExpensesRepository>((ref) {
 
 /// Expenses for one group, sorted newest-first. UI screens watch this and
 /// `ref.invalidate(groupExpensesProvider(groupId))` after mutations.
+///
+/// Watches `authStateProvider` to drop the cache on sign-out/sign-in so
+/// previous-session data doesn't bleed into the new user's view.
 final groupExpensesProvider =
     FutureProvider.family<List<Expense>, String>((ref, groupId) async {
+  ref.watch(authStateProvider);
   return ref.watch(expensesRepositoryProvider).listForGroup(groupId);
 });

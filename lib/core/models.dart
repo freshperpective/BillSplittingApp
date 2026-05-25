@@ -205,7 +205,8 @@ enum ActivityKind {
   expenseDelete,
   settle,
   groupCreate,
-  groupMemberAdd;
+  groupMemberAdd,
+  groupMemberRemove;
 
   static ActivityKind parse(String s) {
     switch (s) {
@@ -221,6 +222,8 @@ enum ActivityKind {
         return ActivityKind.groupCreate;
       case 'group.member.add':
         return ActivityKind.groupMemberAdd;
+      case 'group.member.remove':
+        return ActivityKind.groupMemberRemove;
     }
     throw ArgumentError('Unknown activity kind: $s');
   }

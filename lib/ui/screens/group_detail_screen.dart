@@ -792,6 +792,157 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
   String? _error;
   String? _success;
 
+  /// Self-leave path. Balance-aware: lists any open transfers involving the
+  /// current user before letting them go. Closes the sheet and navigates
+  /// home on success (the group disappears from their view once RLS kicks
+  /// in on the next fetch).
+  Future<void> _confirmLeave() async {
+    final me = ref.read(currentUserProvider);
+    if (me == null) return;
+    await _confirmRemoval(
+      profileId: me.id,
+      displayName: 'You',
+      isSelf: true,
+    );
+  }
+
+  /// Owner-removes-someone path. Same balance check as leave; the dialog
+  /// reads as "X has open balances" instead of "you have open balances".
+  Future<void> _confirmRemove({required Profile member}) async {
+    await _confirmRemoval(
+      profileId: member.id,
+      displayName: member.displayName,
+      isSelf: false,
+    );
+  }
+
+  /// Shared confirm + execute path for both Leave and Remove. Pulls the
+  /// live balance, lists any open transfers that involve [profileId], and
+  /// either asks a normal confirm (when settled) or a sterner one (when
+  /// debts are open). On success: invalidate every read that touches
+  /// membership, and for self-leave navigate home.
+  Future<void> _confirmRemoval({
+    required String profileId,
+    required String displayName,
+    required bool isSelf,
+  }) async {
+    GroupBalance? balance;
+    try {
+      balance =
+          await ref.read(groupBalanceProvider(widget.groupId).future);
+    } catch (_) {
+      // Balance read failure isn't fatal — we'll just skip the open-debts
+      // section in the dialog and rely on the generic warning.
+    }
+    final openTransfers = (balance?.transfers ?? const [])
+        .where((t) => t.from == profileId || t.to == profileId)
+        .toList();
+    final hasOpen = openTransfers.isNotEmpty;
+
+    final memberList =
+        ref.read(groupMembersProvider(widget.groupId)).valueOrNull ??
+            const <Profile>[];
+    String nameOf(String id) {
+      if (id == profileId) return displayName;
+      for (final m in memberList) {
+        if (m.id == id) return m.displayName;
+      }
+      return 'Someone';
+    }
+
+    final title = isSelf ? 'Leave this group?' : 'Remove $displayName?';
+    final body = isSelf
+        ? 'You\'ll lose access to this group. Existing expenses stay '
+            'attributed to you so the others\' balances stay correct, '
+            'but anything that happens after this won\'t reach you.'
+        : '$displayName loses access to the group. Their share of past '
+            'expenses stays attributed to them so balances stay correct, '
+            'but they won\'t see anything new here.';
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(body),
+            if (hasOpen) ...[
+              const SizedBox(height: 12),
+              Text(
+                isSelf
+                    ? 'You still have open balances here:'
+                    : '$displayName still has open balances here:',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              for (final t in openTransfers)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    '• ${nameOf(t.from)} → ${nameOf(t.to)} ${t.amount}',
+                    style: const TextStyle(
+                        color: TabbyTheme.clay, fontSize: 13),
+                  ),
+                ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
+            child: Text(hasOpen
+                ? (isSelf ? 'Leave anyway' : 'Remove anyway')
+                : (isSelf ? 'Leave' : 'Remove')),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      await ref.read(groupsRepositoryProvider).removeMember(
+            groupId: widget.groupId,
+            profileId: profileId,
+          );
+      ref.invalidate(groupMembersProvider(widget.groupId));
+      ref.invalidate(groupBalanceProvider(widget.groupId));
+      ref.invalidate(balancesRollupProvider);
+      ref.invalidate(activityFeedProvider);
+      ref.invalidate(groupActivityProvider(widget.groupId));
+      // The leaver no longer sees the group at all — bump the list so it
+      // disappears from their groups tab on next look.
+      if (isSelf) ref.invalidate(myGroupsProvider);
+
+      if (mounted) {
+        Navigator.of(context).pop(); // close the members sheet
+        if (isSelf && context.mounted) {
+          context.go('/');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Left the group.')),
+          );
+        } else if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Removed $displayName.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Couldn't ${isSelf ? 'leave' : 'remove'}: $e"),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _addByEmail() async {
     final email = _email.text.trim();
     if (email.isEmpty || !email.contains('@')) {
@@ -930,9 +1081,20 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
               // changes, switch to a role lookup via a members-with-role
               // query instead.
               final ownerId = group.valueOrNull?.createdBy;
+              final me = ref.watch(currentUserProvider)?.id;
+              final iAmOwner = me != null && me == ownerId;
+
               return Column(
                 children: list.map((m) {
                   final isOwner = m.id == ownerId;
+                  final isMe = m.id == me;
+                  // Trailing action lives on a row when:
+                  //   - it's me, and I'm not the owner (Leave)
+                  //   - I'm the owner, and the row is someone else (Remove)
+                  // Owner can't be removed; non-owners can't remove peers.
+                  final showLeave = isMe && !isOwner;
+                  final showRemove = iAmOwner && !isMe;
+
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
@@ -972,6 +1134,22 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                     subtitle: Text(m.defaultCurrency,
                         style: const TextStyle(
                             color: TabbyTheme.dim, fontSize: 12)),
+                    trailing: showLeave
+                        ? IconButton(
+                            tooltip: 'Leave group',
+                            icon: const Icon(Icons.logout,
+                                color: TabbyTheme.clay),
+                            onPressed: () => _confirmLeave(),
+                          )
+                        : showRemove
+                            ? IconButton(
+                                tooltip: 'Remove member',
+                                icon: const Icon(Icons.person_remove_outlined,
+                                    color: TabbyTheme.clay),
+                                onPressed: () =>
+                                    _confirmRemove(member: m),
+                              )
+                            : null,
                   );
                 }).toList(),
               );

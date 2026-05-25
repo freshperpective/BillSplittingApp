@@ -120,7 +120,11 @@ final activityRepositoryProvider = Provider<ActivityRepository>((ref) {
 
 /// Cross-group activity feed for the current user. Invalidated after mutations
 /// that produce activity rows (add-expense, add-member, create-group, settle).
+///
+/// Watches `authStateProvider` so signing in as a different user resets the
+/// cache instead of leaking the prior user's feed.
 final activityFeedProvider = FutureProvider<ActivityFeed>((ref) async {
+  ref.watch(authStateProvider);
   return ref.watch(activityRepositoryProvider).listMine();
 });
 
@@ -129,5 +133,6 @@ final activityFeedProvider = FutureProvider<ActivityFeed>((ref) async {
 /// coherent.
 final groupActivityProvider =
     FutureProvider.family<ActivityFeed, String>((ref, groupId) async {
+  ref.watch(authStateProvider);
   return ref.watch(activityRepositoryProvider).listForGroup(groupId);
 });
