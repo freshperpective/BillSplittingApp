@@ -221,11 +221,17 @@ class BalanceCalculator {
     for (final e in expenses) {
       if (e.isDeleted) continue;
       for (final s in e.shares) {
-        addTo(s.profileId, s.paidShare - s.owedShare);
+        // Shares are stored in the expense's own currency. Multiplying by
+        // fxToGroup converts the net contribution into the group's default
+        // currency.  When expense currency == group currency, fxToGroup == 1
+        // and this is a no-op — single-currency groups are unaffected.
+        addTo(s.profileId, (s.paidShare - s.owedShare) * e.fxToGroup);
       }
     }
     for (final s in settlements) {
-      // Money flowed from `from` → `to`; debt of `from` decreased.
+      // Settlements are always recorded in the group's default currency
+      // (enforced by SettleSheet, which pre-fills the group currency and
+      // doesn't expose a currency picker). No FX conversion needed.
       addTo(s.fromProfile, s.amount);
       addTo(s.toProfile, -s.amount);
     }

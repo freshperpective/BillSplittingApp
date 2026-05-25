@@ -26,6 +26,7 @@ class GroupBalance {
   const GroupBalance({
     required this.netByProfile,
     required this.transfers,
+    required this.currency,
   });
 
   /// `profileId → signed net`. Positive = others owe this profile.
@@ -35,6 +36,10 @@ class GroupBalance {
 
   /// Minimum-transfer plan: `(debtor → creditor : amount)` rows.
   final List<({String from, String to, Decimal amount})> transfers;
+
+  /// The group's default currency. All amounts in [netByProfile] and
+  /// [transfers] are expressed in this currency after fxToGroup conversion.
+  final String currency;
 
   /// Convenience: my net balance in this group.
   Decimal myNet(String myId) => netByProfile[myId] ?? Decimal.zero;
@@ -55,17 +60,23 @@ class GroupBalance {
 final groupBalanceProvider =
     FutureProvider.family<GroupBalance, String>((ref, groupId) async {
   ref.watch(authStateProvider);
-  // Watch both upstream providers so invalidating either (after add-expense
-  // or add-settlement) cascades into a fresh balance computation.
+  // Watch all three upstream providers so invalidating any of them cascades
+  // into a fresh balance computation. The group fetch is needed to carry its
+  // default currency into GroupBalance so UIs don't have to re-fetch it.
   final expenses =
       await ref.watch(groupExpensesProvider(groupId).future);
   final settlements =
       await ref.watch(groupSettlementsProvider(groupId).future);
+  final group = await ref.watch(groupByIdProvider(groupId).future);
 
   const calc = BalanceCalculator();
   final net = calc.compute(expenses: expenses, settlements: settlements);
   final transfers = calc.simplify(net);
-  return GroupBalance(netByProfile: net, transfers: transfers);
+  return GroupBalance(
+    netByProfile: net,
+    transfers: transfers,
+    currency: group.defaultCurrency,
+  );
 });
 
 /// One peer + my signed net balance with them, aggregated across all groups.

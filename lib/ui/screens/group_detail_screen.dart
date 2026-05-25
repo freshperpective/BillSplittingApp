@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/models.dart';
+import '../../core/money.dart';
 import '../../data/activity_repository.dart';
 import '../../data/balance_providers.dart';
 import '../../data/expenses_repository.dart';
@@ -430,11 +431,8 @@ class _GroupBalanceStrip extends ConsumerWidget {
     if (me == null) return const SizedBox.shrink();
 
     final balanceAsync = ref.watch(groupBalanceProvider(groupId));
-    // We need the group's currency to pre-fill the settle sheet. Watching
-    // here is essentially free — the parent already watches the same family
-    // member, so Riverpod dedupes the request.
-    final group = ref.watch(groupByIdProvider(groupId));
-    final currency = group.valueOrNull?.defaultCurrency ?? 'INR';
+    // groupBalanceProvider now carries the group's currency inside
+    // GroupBalance.currency, so no separate group watch is needed here.
 
     return balanceAsync.when(
       // Loading: take up no space so the list doesn't jitter on first load.
@@ -478,7 +476,10 @@ class _GroupBalanceStrip extends ConsumerWidget {
                   fromName: t.from == me ? 'You' : _name(t.from),
                   toName: t.to == me ? 'You' : _name(t.to),
                   amount: t.amount,
-                  currency: currency,
+                  // balance.currency == group.defaultCurrency; settlements
+                  // are always recorded in the group currency so the math
+                  // stays consistent with the fxToGroup-converted balances.
+                  currency: balance.currency,
                 ),
                 child: Padding(
                   padding:
@@ -498,7 +499,10 @@ class _GroupBalanceStrip extends ConsumerWidget {
                             style: const TextStyle(fontSize: 14)),
                       ),
                       Text(
-                        t.amount.toString(),
+                        // Round to the group currency's minor-unit precision
+                        // so JPY shows 0 decimals, USD/INR/etc. show 2.
+                        '${balance.currency} '
+                        '${t.amount.round(scale: Money.decimalsFor(balance.currency))}',
                         style: amountStyle(context, positive: theyOweMe)
                             .copyWith(fontSize: 16),
                       ),

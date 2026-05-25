@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/fx_rates.dart';
 import '../../core/models.dart';
 import '../../core/split_engine.dart';
 import '../../data/activity_repository.dart';
@@ -47,7 +48,19 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
   SplitMode _mode = SplitMode.equal;
   String? _payerId;
+
+  /// The currency the user has selected for this expense.
+  /// Initialised to the group's default currency on first load (see build()).
   String _currency = 'INR';
+
+  /// The group's default currency — kept in sync from the group fetch in
+  /// build() so _save() can compute fxToGroup without an extra async call.
+  String _groupCurrency = 'INR';
+
+  /// Guards the one-time initialisation of [_currency] for new expenses.
+  /// For edits, _prepopulateFrom() sets _currency from the stored expense.
+  bool _currencyInitialized = false;
+
   bool _saving = false;
   String? _error;
 
@@ -276,6 +289,20 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 }
                 _payerId ??=
                     ref.read(currentUserProvider)?.id ?? list.first.id;
+
+                // Sync group currency for FX computation at save time.
+                // Also sets the expense currency default for new expenses on
+                // first load so the picker opens on the group's currency
+                // rather than the hardcoded 'INR' fallback.
+                final gc = group.valueOrNull?.defaultCurrency;
+                if (gc != null) {
+                  _groupCurrency = gc;
+                  if (!widget.isEditing && !_currencyInitialized) {
+                    _currency = gc;
+                    _currencyInitialized = true;
+                  }
+                }
+
                 return _buildForm(list);
               },
             ),
@@ -374,12 +401,12 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       value: _currency,
                       decoration:
                           const InputDecoration(labelText: 'Currency'),
-                      items: const ['INR', 'USD', 'EUR', 'GBP', 'JPY']
+                      items: FxRates.supported
                           .map((c) =>
                               DropdownMenuItem(value: c, child: Text(c)))
                           .toList(),
                       onChanged: (v) =>
-                          setState(() => _currency = v ?? 'INR'),
+                          setState(() => _currency = v ?? _groupCurrency),
                     ),
                   ),
                 ],
@@ -499,7 +526,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               description: _description.text.trim(),
               amount: total,
               currency: _currency,
-              fxToGroup: Decimal.one,
+              // Recompute the FX snapshot whenever the user edits the expense,
+              // even if they didn't change the currency — the rate they get is
+              // the same static table value, so it's consistent.
+              fxToGroup: FxRates.rate(from: _currency, to: _groupCurrency),
               paidAt: _originalPaidAt ?? DateTime.now(),
               category: _originalCategory ?? 'general',
               note: _originalNote,
@@ -511,7 +541,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               description: _description.text.trim(),
               amount: total,
               currency: _currency,
-              fxToGroup: Decimal.one,
+              // Snapshot the FX rate at creation time. For same-currency
+              // expenses this is 1.0; for foreign-currency ones it's the
+              // static mid-market rate from FxRates (until live rates land).
+              fxToGroup: FxRates.rate(from: _currency, to: _groupCurrency),
               paidAt: DateTime.now(),
               category: 'general',
               split: split,
