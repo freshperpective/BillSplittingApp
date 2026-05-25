@@ -879,8 +879,8 @@ class _GroupActivitySheet extends ConsumerWidget {
               ),
               data: (feed) {
                 if (feed.events.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(32),
+                  return Padding(
+                    padding: const EdgeInsets.all(32),
                     child: Center(
                       child: Text(
                         "Nothing's happened in this group yet.",

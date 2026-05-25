@@ -711,7 +711,7 @@ class _MissingExpense extends StatelessWidget {
             Text("Couldn't find that expense.",
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'It may have been deleted. Go back to refresh the list.',
               textAlign: TextAlign.center,
               style: TextStyle(color: TabbyTheme.dimOf(context)),

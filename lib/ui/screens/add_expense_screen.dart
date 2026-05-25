@@ -777,7 +777,7 @@ class _ArchivedNotice extends StatelessWidget {
             Text("This group is archived.",
                 style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               "Unarchive it from the group page to add new expenses.",
               textAlign: TextAlign.center,
               style: TextStyle(color: TabbyTheme.dimOf(context)),
