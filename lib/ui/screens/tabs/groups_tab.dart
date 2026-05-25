@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/fx_rates.dart';
 import '../../../core/models.dart';
 import '../../../data/activity_repository.dart';
 import '../../../data/groups_repository.dart';
@@ -66,27 +67,34 @@ class GroupsTab extends ConsumerWidget {
                   ],
                 if (archived.isNotEmpty) ...[
                   const SizedBox(height: 14),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 8),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.archive_outlined,
-                            size: 16, color: TabbyTheme.dim),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Archived',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(color: TabbyTheme.dim),
-                        ),
-                      ],
+                  // Collapsible so archived groups don't crowd the active list.
+                  // Starts collapsed — the count in the title tells the user
+                  // what's there without forcing them to scroll past it.
+                  ExpansionTile(
+                    initiallyExpanded: false,
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+                    childrenPadding: EdgeInsets.zero,
+                    // Remove the default top/bottom divider lines.
+                    shape: const Border(),
+                    collapsedShape: const Border(),
+                    leading: const Icon(Icons.archive_outlined,
+                        size: 16, color: TabbyTheme.dim),
+                    title: Text(
+                      'Archived (${archived.length})',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(color: TabbyTheme.dim),
                     ),
+                    iconColor: TabbyTheme.dim,
+                    collapsedIconColor: TabbyTheme.dim,
+                    children: [
+                      for (final g in archived) ...[
+                        _GroupCard(group: g, archived: true),
+                        const SizedBox(height: 10),
+                      ],
+                    ],
                   ),
-                  for (final g in archived) ...[
-                    _GroupCard(group: g, archived: true),
-                    const SizedBox(height: 10),
-                  ],
                 ],
               ],
             ),
@@ -269,7 +277,7 @@ class _NewGroupSheetState extends ConsumerState<_NewGroupSheet> {
           DropdownButtonFormField<String>(
             value: _currency,
             decoration: const InputDecoration(labelText: 'Default currency'),
-            items: const ['INR', 'USD', 'EUR', 'GBP', 'JPY']
+            items: FxRates.supported
                 .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                 .toList(),
             onChanged: (v) => setState(() => _currency = v ?? 'INR'),
