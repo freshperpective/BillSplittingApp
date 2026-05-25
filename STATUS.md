@@ -2,7 +2,7 @@
 
 *Last updated 2026-05-25. Keep this file current: update it in the same commit as the feature it describes.*
 
-> **Session summary (2026-05-25):** shipped multi-currency, receipt photos, splash screen, simplify-debts toggle, and archive UX polish. Multi-currency: FX snapshot at entry, balance math conversion, 14-currency picker defaulting to group currency. Receipts: private Storage bucket + RLS, `ReceiptsRepository`, horizontal thumbnail strip with full-screen viewer on expense detail (run migration 0009). Splash: `flutter_native_splash` generates warm-paper (#FBFAF6) and dark (#11151A) backgrounds for Android + iOS. Simplify-debts: toggle in the group balance strip switches between "Your transfers" (simplified, tappable → SettleSheet) and "Everyone's balance" (raw net positions). Archive polish: archived section in Groups tab is now a collapsible `ExpansionTile` showing the count; New Group currency picker expanded from 5 hardcoded codes to all 14 via `FxRates.supported`.
+> **Session summary (2026-05-25):** shipped multi-currency, receipt photos, splash screen, simplify-debts toggle, archive UX polish, app icon, and full dark-theme support. Multi-currency: FX snapshot at entry, balance math conversion, 14-currency picker defaulting to group currency. Receipts: private Storage bucket + RLS, `ReceiptsRepository`, horizontal thumbnail strip with full-screen viewer on expense detail (run migration 0009). Splash: `flutter_native_splash` generates warm-paper (#FBFAF6) and dark (#11151A) backgrounds for Android + iOS. Simplify-debts: toggle in the group balance strip switches between "Your transfers" (simplified, tappable → SettleSheet) and "Everyone's balance" (raw net positions). Archive polish: archived section in Groups tab is now a collapsible `ExpansionTile` showing the count; New Group currency picker expanded from 5 hardcoded codes to all 14 via `FxRates.supported`.
 
 ---
 
@@ -70,7 +70,7 @@ Private `receipts` Storage bucket + RLS (migration 0009). `ReceiptsRepository` (
 |-------|--------|
 | **Disable email confirmation** | In Supabase Auth settings → disable "Confirm email" for magic-link flow, or users get stuck after sign-up. |
 | ~~**`.gitattributes` for CRLF**~~ ✅ | `* text=auto` + `*.dart/sql/yaml/json/md text eol=lf`; platform dirs marked binary. |
-| **App icon** | Replace the default Flutter icon with the Tabby teal/amber mark on all densities (Android `mipmap-*`, iOS `AppIcon.appiconset`). Use `flutter_launcher_icons`. |
+| ~~**App icon**~~ ✅ | Geometric cat face (white head + ears, three amber tabby/ledger stripes, teal bg). Generated via `test/gen_icon_test.dart` → `assets/icon/icon.png`; `flutter_launcher_icons` emits all Android mipmap densities + adaptive icon + iOS `AppIcon.appiconset`. |
 | ~~**Launch / splash screen**~~ ✅ | `flutter_native_splash` generates warm-paper (#FBFAF6) / dark (#11151A) backgrounds for Android + iOS. |
 | **Bundle IDs** | Set `com.tabby.app` (or chosen ID) in `android/app/build.gradle` and Xcode; must match what's registered in App Store Connect / Play Console. |
 
@@ -91,4 +91,4 @@ These only pay off once there's an install base.
 | **CSV export** | Dump a group's expenses as CSV for the "I want a spreadsheet" power user. Single endpoint, low effort, high goodwill. |
 | **Recurring expenses** | Scheduled entries (monthly rent, subscriptions). Needs a `recurrence_rule` column + a cron-like Edge Function or client-side scheduler. |
 | **Search** | Full-text search over expense descriptions. Postgres `tsvector` + GIN index on `expenses.description`; expose via RPC. |
-| **Dark theme polish** | Audit `TabbyTheme` for hardcoded light-only colours; provide dark-mode `ColorScheme` variants. The warm-paper surface needs a proper dark analogue (`#11151A` per DESIGN.md). |
+| ~~**Dark theme polish**~~ ✅ | `TabbyTheme.dark()` completed (`inputDecorationTheme`, `scrolledUnderElevation`); three semantic helpers (`dimOf`, `cardFillOf`, `borderOf`) replace hardcoded `dim`/`Colors.white`/`mist` references across 12 UI files so all colours adapt to light/dark automatically. |
