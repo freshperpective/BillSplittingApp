@@ -65,7 +65,7 @@ class _ProfileBody extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: TabbyTheme.amber.withOpacity(0.4),
+                  backgroundColor: TabbyTheme.amber.withValues(alpha: 0.4),
                   child: Text(
                     initial,
                     style: const TextStyle(
@@ -82,11 +82,11 @@ class _ProfileBody extends ConsumerWidget {
                     children: [
                       Text(name,
                           style:
-                              Theme.of(context).textTheme.titleMedium),
+                              Theme.of(context).textTheme.titleMedium,),
                       const SizedBox(height: 2),
                       Text(email,
                           style: TextStyle(
-                              color: TabbyTheme.dimOf(context), fontSize: 12)),
+                              color: TabbyTheme.dimOf(context), fontSize: 12,),),
                     ],
                   ),
                 ),
@@ -119,14 +119,14 @@ class _ProfileBody extends ConsumerWidget {
           },
           icon: const Icon(Icons.logout, color: TabbyTheme.clay),
           label: const Text('Sign out',
-              style: TextStyle(color: TabbyTheme.clay)),
+              style: TextStyle(color: TabbyTheme.clay),),
         ),
       ],
     );
   }
 
   Future<void> _editName(BuildContext context, WidgetRef ref,
-      {String? current}) async {
+      {String? current,}) async {
     final controller = TextEditingController(text: current ?? '');
     final saved = await showModalBottomSheet<String>(
       context: context,
@@ -140,7 +140,7 @@ class _ProfileBody extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Display name',
-                  style: Theme.of(ctx).textTheme.headlineSmall),
+                  style: Theme.of(ctx).textTheme.headlineSmall,),
               const SizedBox(height: 4),
               Text(
                 'What other members see next to your expenses.',
@@ -173,6 +173,7 @@ class _ProfileBody extends ConsumerWidget {
     );
 
     if (saved == null || saved.isEmpty || saved == current) return;
+    if (!context.mounted) return;
     await _commit(context, ref, () async {
       await ref
           .read(profilesRepositoryProvider)
@@ -181,7 +182,7 @@ class _ProfileBody extends ConsumerWidget {
   }
 
   Future<void> _editCurrency(BuildContext context, WidgetRef ref,
-      {required String current}) async {
+      {required String current,}) async {
     // Hardcoded set matches the new-group sheet so the two surfaces
     // can't drift. Expand here when we add proper currency selection.
     const currencies = ['INR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'SGD'];
@@ -199,7 +200,7 @@ class _ProfileBody extends ConsumerWidget {
                     const Padding(
                       padding: EdgeInsets.only(right: 8),
                       child: Icon(Icons.check,
-                          size: 18, color: TabbyTheme.teal),
+                          size: 18, color: TabbyTheme.teal,),
                     )
                   else
                     const SizedBox(width: 26),
@@ -208,7 +209,7 @@ class _ProfileBody extends ConsumerWidget {
                         fontWeight: c == current
                             ? FontWeight.w600
                             : FontWeight.normal,
-                      )),
+                      ),),
                 ],
               ),
             ),
@@ -217,6 +218,7 @@ class _ProfileBody extends ConsumerWidget {
     );
 
     if (picked == null || picked == current) return;
+    if (!context.mounted) return;
     await _commit(context, ref, () async {
       await ref
           .read(profilesRepositoryProvider)

@@ -204,7 +204,7 @@ final peerSettleOptionsProvider =
         fromProfileId: t.from,
         toProfileId: t.to,
         amount: t.amount,
-      ));
+      ),);
     }
   }
   // Biggest amount first so the picker leads with the chunk most worth

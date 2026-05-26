@@ -23,7 +23,7 @@ void main() {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(
       recorder,
-      ui.Rect.fromLTWH(0, 0, size, size),
+      const ui.Rect.fromLTWH(0, 0, size, size),
     );
 
     _drawTabbyIcon(canvas, size);
@@ -84,7 +84,7 @@ void _drawTabbyIcon(ui.Canvas canvas, double s) {
   // Smaller triangles inside each ear. Drawn before the head circle so the
   // circle naturally covers their lower portions — only the upper (ear)
   // section remains visible.
-  p.color = _amber.withOpacity(0.75);
+  p.color = _amber.withValues(alpha: 0.75);
 
   _tri(canvas, p,
     ui.Offset(s * 0.298, s * 0.376),
@@ -108,7 +108,7 @@ void _drawTabbyIcon(ui.Canvas canvas, double s) {
   // size they read as both cat forehead markings and ledger / bill lines.
   canvas.save();
   canvas.clipPath(ui.Path()
-    ..addOval(ui.Rect.fromCircle(center: hc, radius: hr)));
+    ..addOval(ui.Rect.fromCircle(center: hc, radius: hr)),);
 
   p.color = _amber;
   const sRad = ui.Radius.circular(13);
@@ -129,7 +129,7 @@ void _drawTabbyIcon(ui.Canvas canvas, double s) {
   // Keeps the white face from bleeding into the teal background at the
   // circle edge when the icon is displayed on a teal-ish wallpaper.
   p
-    ..color = _tealDeep.withOpacity(0.18)
+    ..color = _tealDeep.withValues(alpha: 0.18)
     ..style = ui.PaintingStyle.stroke
     ..strokeWidth = s * 0.012;
   canvas.drawCircle(hc, hr, p);

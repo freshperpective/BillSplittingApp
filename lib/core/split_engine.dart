@@ -92,7 +92,7 @@ class SplitEngine {
         profileId: p.profileId,
         paidShare: p.paid ?? Decimal.zero,
         owedShare: owed[p.profileId]!,
-      ));
+      ),);
     }
     return SplitResult(shares);
   }

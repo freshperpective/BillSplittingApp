@@ -155,7 +155,7 @@ class TabbyTheme {
         type: BottomNavigationBarType.fixed,
       ),
       dividerTheme: const DividerThemeData(
-          color: darkBorder, thickness: 1, space: 1),
+          color: darkBorder, thickness: 1, space: 1,),
     );
   }
 

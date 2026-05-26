@@ -1,115 +1,176 @@
 # Tabby
 
-A cross-platform bill-splitting app for Android and iOS. Built with **Flutter** (one codebase, native rendering on both platforms) and **Supabase** (Postgres + auth + storage + realtime).
+A clean, original bill-splitting app for Android and iOS. Built with **Flutter + Supabase**.
 
-This repo is an original implementation: no Splitwise code, assets, copy, or visual styling was used. The data model and split math come from first principles. See `DESIGN.md` for the full architectural blueprint.
+> **Bundle ID:** `com.tabby.app`  
+> **Status:** Pre-production — all core features shipped, pending store submission.
 
-## What's here
+---
+
+## What it does
+
+Tabby lets a group of people track shared expenses and settle up cleanly.
+
+| Feature | Detail |
+|---------|--------|
+| **Groups** | Create named groups with an emoji + currency; invite members by email |
+| **Expenses** | Equal / Unequal / Percent / Shares / Adjust split modes; any member can pay |
+| **Multi-currency** | Per-expense currency with FX snapshot at entry time; balances converted to group currency |
+| **Receipts** | Attach up to 5 photos per expense; stored in a private Supabase Storage bucket |
+| **Settle up** | Record a payment between two members; balance updates immediately |
+| **Simplify debts** | Toggle between "your transfers" (minimum-transfer graph) and everyone's raw net position |
+| **Activity feed** | Global + per-group timeline of all expense, settlement, and membership events |
+| **Archive** | Archive old groups; collapsible section keeps the list clean |
+| **Dark theme** | Full dark/light support; all colours adapt via semantic theme helpers |
+| **Profile** | Edit display name and default currency |
+
+## Originality
+
+No code, asset, copy, or visual element is taken from Splitwise or any other app. The "warm ledger" theme — teal `#0E7C66`, amber `#F4A259`, paper `#FBFAF6`, Inter + Fraunces — was designed to be visually distinct. The split math (zero-sum balance reconciliation) is public-domain arithmetic.
+
+---
+
+## Tech stack
+
+| Layer | Choice |
+|-------|--------|
+| UI | Flutter 3.22+ / Dart 3.4 |
+| State | Riverpod 2.5 |
+| Routing | go_router 14 |
+| Backend | Supabase (Postgres + Auth + Storage) |
+| Money | `decimal` package — never `double` |
+
+---
+
+## Project structure
 
 ```
-.
-├── DESIGN.md                  ← read this first
-├── pubspec.yaml               ← Flutter dependencies
-├── lib/
-│   ├── main.dart              ← entrypoint, Supabase init
-│   ├── app.dart               ← MaterialApp + theme + router
-│   ├── core/                  ← pure Dart: models, money, split engine
-│   │   ├── env.dart
-│   │   ├── models.dart
-│   │   ├── money.dart
-│   │   └── split_engine.dart  ← equal/unequal/%/shares + balance + simplify
-│   ├── data/                  ← Supabase repositories
-│   │   ├── supabase_client.dart
-│   │   ├── groups_repository.dart
-│   │   └── expenses_repository.dart
-│   └── ui/
-│       ├── router.dart
-│       ├── theme/tabby_theme.dart
-│       └── screens/           ← auth, home shell, group detail, add expense
-├── test/
-│   └── split_engine_test.dart
-└── supabase/
-    └── migrations/0001_init.sql
+lib/
+├── main.dart                  — entrypoint, Supabase init
+├── app.dart                   — MaterialApp, theme, router
+├── core/                      — pure Dart (no Flutter/Supabase imports)
+│   ├── models.dart            — Group, Expense, ExpenseShare, Settlement, Profile, Receipt
+│   ├── money.dart             — currency formatting helpers
+│   ├── fx_rates.dart          — static FX rate table (14 currencies)
+│   ├── split_engine.dart      — equal/unequal/percent/shares/adjust + BalanceCalculator
+│   └── env.dart               — dart-define accessors
+├── data/                      — Supabase repositories + Riverpod providers
+│   ├── supabase_client.dart
+│   ├── groups_repository.dart
+│   ├── expenses_repository.dart
+│   ├── settlements_repository.dart
+│   ├── receipts_repository.dart
+│   ├── activity_repository.dart
+│   ├── profiles_repository.dart
+│   └── balance_providers.dart
+└── ui/
+    ├── theme/tabby_theme.dart — light + dark themes, semantic colour helpers
+    ├── screens/
+    │   ├── auth_screen.dart
+    │   ├── add_expense_screen.dart
+    │   ├── expense_detail_screen.dart
+    │   ├── group_detail_screen.dart
+    │   ├── settlement_detail_screen.dart
+    │   └── tabs/              — balances, groups, activity, profile
+    └── widgets/               — ActivityRow, SettleSheet, reusable components
+
+supabase/migrations/           — SQL applied via Supabase Studio (run in order)
+test/
+├── split_engine_test.dart     — unit tests (no network/Flutter harness needed)
+└── gen_icon_test.dart         — generates assets/icon/icon.png
 ```
 
-## Stack at a glance
-
-| Layer        | Choice                              |
-|--------------|-------------------------------------|
-| UI           | Flutter 3.22+ (Dart 3.4)            |
-| State        | Riverpod 2.5                        |
-| Routing      | go_router 14                        |
-| Backend      | Supabase (Postgres, Auth, Storage)  |
-| Money        | `decimal` (never `double`)          |
-| Local cache  | Drift (SQLite) — wired in v0.2      |
+---
 
 ## Getting started
 
-### 1. Install Flutter
+### Prerequisites
 
-Install Flutter 3.22 or newer per the [official guide](https://docs.flutter.dev/get-started/install), then:
+- Flutter 3.22+ (`flutter doctor` should be green for Android + iOS)
+- A [Supabase](https://supabase.com) project (free tier is fine)
 
-```bash
-flutter doctor
-```
+### 1. Apply migrations
 
-Make sure the Android toolchain + Xcode (on macOS) come up green.
+In **Supabase Studio → SQL editor**, run each file in `supabase/migrations/` in order:
 
-### 2. Create a Supabase project
+| File | What it does |
+|------|-------------|
+| `0001_init.sql` | Tables, RLS, validate-shares trigger, `is_group_member` helper |
+| `0002_find_profile_by_email.sql` | `find_profile_by_email` SECURITY DEFINER RPC |
+| `0003_activity_triggers.sql` | Activity event triggers + idempotent backfill |
+| `0004_group_delete_policy.sql` | Owner-only DELETE on `groups` |
+| `0005_settlement_delete.sql` | DELETE on `settlements` + purge-activity trigger |
+| `0006_update_expense_rpc.sql` | `update_expense_with_shares` SECURITY DEFINER RPC |
+| `0007_member_remove.sql` | DELETE on `group_members` + `group.member.remove` trigger |
+| `0008_cascade_guard.sql` | Guards the member-remove trigger against cascade FK violation |
+| `0009_receipts.sql` | `receipts` Storage bucket + `expense_receipts` table + RLS |
 
-1. Sign up at [supabase.com](https://supabase.com) and create a new project (free tier is fine).
-2. In the project's SQL editor, paste the contents of `supabase/migrations/0001_init.sql` and run it. This creates all tables, triggers, and RLS policies.
-3. Under **Authentication → Providers**, enable **Email**. Optionally enable **Apple** and **Google** later for production.
-4. Copy your project URL and `anon` public key from **Project Settings → API**.
+> **Never edit a migration that's already been applied.** Add a new numbered file instead.
 
-### 3. Run the app
+### 2. Configure Supabase Auth
+
+In **Authentication → Providers → Email**: disable **"Confirm email"**. Magic-link auth proves ownership in one click — the confirmation step is redundant and breaks the sign-up flow.
+
+### 3. Run
 
 ```bash
 flutter pub get
 
-# Android emulator or iOS simulator must be running.
 flutter run \
   --dart-define=SUPABASE_URL=https://YOUR-PROJECT.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+  --dart-define=SUPABASE_ANON_KEY=eyJ...
 ```
 
-For iOS-specific setup: open `ios/Runner.xcworkspace` once, set the bundle ID and signing team. For Android: the default `applicationId` lives in `android/app/build.gradle`.
-
-### 4. Run the tests
+### 4. Test
 
 ```bash
-flutter test
+flutter test                                        # all tests
+flutter test test/split_engine_test.dart            # split engine only
+flutter test --plain-name 'equal split rounding'    # single test
+flutter analyze                                     # must be clean
 ```
 
-The split engine has unit tests; running these does not need Supabase.
+---
 
-## Building releases
+## Release builds
 
 ```bash
-# Android (App Bundle for Play Store)
+# Android App Bundle (Play Store)
 flutter build appbundle \
-  --dart-define=SUPABASE_URL=... \
-  --dart-define=SUPABASE_ANON_KEY=...
+  --dart-define=SUPABASE_URL=https://YOUR-PROJECT.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=eyJ...
 
-# iOS (archive for App Store / TestFlight)
+# iOS IPA (App Store / TestFlight)
 flutter build ipa \
-  --dart-define=SUPABASE_URL=... \
-  --dart-define=SUPABASE_ANON_KEY=...
+  --dart-define=SUPABASE_URL=https://YOUR-PROJECT.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=eyJ...
 ```
 
-For CI, store the dart-define values as secrets — never commit them.
+Store the dart-define values as CI secrets — never commit them to the repo.
 
-## Originality notes
+---
 
-- **Color palette, typography, iconography, copy:** all chosen independently. The "warm ledger" theme (deep teal `#0E7C66` + warm amber `#F4A259` on warm paper `#FBFAF6`, with Inter + Fraunces) is distinct from Splitwise's brand.
-- **Data model:** derived from the public math of balance reconciliation. Schema, table names, and constraints are original.
-- **Split-engine math:** equal/unequal/percent/shares splits are standard arithmetic; the implementation in `lib/core/split_engine.dart` is original Dart.
-- **What is *not* original (and doesn't need to be):** the *idea* of bill splitting and the public-domain math of zero-sum balance reconciliation. Trademarks and product names belong to their owners.
+## Architecture notes
 
-## Roadmap
+**Layer rule:** UI consumes providers only → providers wrap repositories → repositories call Supabase → repositories depend on core models. Never reach upward.
 
-See `DESIGN.md §11`. Short version: v0.1 is this scaffold (auth, groups, equal-split expenses); v0.2 adds all split modes + settle-up + activity feed; v0.3 adds multi-currency + receipts; v1.0 ships to TestFlight/Play Internal Testing.
+**Riverpod providers live in `lib/data/`**, not in screen files. Providers declared in UI files caused import cycles with the cross-group balance rollup during v0.3 refactor.
+
+**Money is always `Decimal`** from the `decimal` package. Database columns are `numeric(14,2)`. Never use `double` for currency arithmetic.
+
+**RLS silent-success on UPDATE/DELETE:** PostgREST returns success even when RLS filters out every row. Every destructive repository call chains `.select()` and raises if the result is empty:
+
+```dart
+final res = await _client.from('groups').delete().eq('id', id).select();
+if (res.isEmpty) throw Exception('Delete failed or not permitted.');
+```
+
+**Auth cache invalidation:** Every per-user `FutureProvider` calls `ref.watch(authStateProvider)` at the top so cached values are dropped on sign-out/sign-in.
+
+See `DESIGN.md` for the full architectural blueprint.
+
+---
 
 ## License
 
-You own this codebase. Add a `LICENSE` file when you publish — MIT or Apache-2.0 are common defaults.
+This codebase is yours. Add a `LICENSE` file when publishing — MIT or Apache-2.0 are standard.

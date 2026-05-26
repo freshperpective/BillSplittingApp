@@ -17,7 +17,7 @@ class ActivityTab extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Activity',
-            style: Theme.of(context).textTheme.displaySmall),
+            style: Theme.of(context).textTheme.displaySmall,),
         toolbarHeight: 72,
         actions: [
           IconButton(
@@ -72,17 +72,17 @@ class _EmptyState extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: TabbyTheme.amber.withOpacity(0.15),
+                color: TabbyTheme.amber.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
               child: const Icon(Icons.timeline,
-                  size: 36, color: TabbyTheme.amber),
+                  size: 36, color: TabbyTheme.amber,),
             ),
             const SizedBox(height: 20),
             Text("Nothing's happened yet.",
                 style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center),
+                textAlign: TextAlign.center,),
             const SizedBox(height: 8),
             Text(
               'Expenses, member adds, and settle-ups will show up here as they happen.',

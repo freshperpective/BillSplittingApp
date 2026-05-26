@@ -125,7 +125,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Record a payment',
-              style: Theme.of(context).textTheme.headlineSmall),
+              style: Theme.of(context).textTheme.headlineSmall,),
           const SizedBox(height: 14),
 
           // Direction summary — reads like a sentence so the user can
@@ -133,23 +133,23 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: TabbyTheme.amber.withOpacity(0.14),
+              color: TabbyTheme.amber.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: _personChip(widget.fromName,
-                      label: 'From', accent: TabbyTheme.clay),
+                      label: 'From', accent: TabbyTheme.clay,),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Icon(Icons.arrow_forward,
-                      size: 18, color: TabbyTheme.dimOf(context)),
+                      size: 18, color: TabbyTheme.dimOf(context),),
                 ),
                 Expanded(
                   child: _personChip(widget.toName,
-                      label: 'To', accent: TabbyTheme.teal),
+                      label: 'To', accent: TabbyTheme.teal,),
                 ),
               ],
             ),
@@ -169,14 +169,14 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                   color: TabbyTheme.cardFillOf(context),
                 ),
                 child: Text(widget.currency,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                    style: const TextStyle(fontWeight: FontWeight.w600),),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: TextField(
                   controller: _amount,
                   keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true),
+                      decimal: true,),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                   ],
@@ -198,7 +198,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
           if (_error != null) ...[
             const SizedBox(height: 10),
             Text(_error!,
-                style: const TextStyle(color: TabbyTheme.clay, fontSize: 13)),
+                style: const TextStyle(color: TabbyTheme.clay, fontSize: 13),),
           ],
           const SizedBox(height: 18),
           FilledButton(
@@ -212,7 +212,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2),
+                        color: Colors.white, strokeWidth: 2,),
                   )
                 : const Text('Log payment'),
           ),
@@ -227,7 +227,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
       children: [
         Text(label,
             style:
-                TextStyle(color: TabbyTheme.dimOf(context), fontSize: 11)),
+                TextStyle(color: TabbyTheme.dimOf(context), fontSize: 11),),
         const SizedBox(height: 2),
         Text(
           name,
@@ -236,7 +236,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
           style: TextStyle(
               color: accent,
               fontSize: 15,
-              fontWeight: FontWeight.w600),
+              fontWeight: FontWeight.w600,),
         ),
       ],
     );

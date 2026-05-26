@@ -46,7 +46,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         if (res.session == null) {
           // Email confirmation is enabled in Supabase. Tell the user.
           setState(() => _status =
-              'Check your email to confirm your account, then come back here and sign in.');
+              'Check your email to confirm your account, then come back here and sign in.',);
         }
       } else {
         await auth.signInWithPassword(email: email, password: password);
@@ -87,7 +87,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               ),
               const SizedBox(height: 56),
               Text(isSignUp ? 'Create an account' : 'Sign in',
-                  style: Theme.of(context).textTheme.headlineSmall),
+                  style: Theme.of(context).textTheme.headlineSmall,),
               const SizedBox(height: 16),
               TextField(
                 controller: _email,
@@ -136,7 +136,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         color: _status!.startsWith('Check')
                             ? TabbyTheme.teal
                             : TabbyTheme.clay,
-                        fontSize: 13)),
+                        fontSize: 13,),),
               ],
               const SizedBox(height: 16),
               Center(
@@ -150,7 +150,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   child: Text(
                     isSignUp
                         ? 'Have an account? Sign in'
-                        : "New here? Create an account",
+                        : 'New here? Create an account',
                     style: const TextStyle(color: TabbyTheme.teal),
                   ),
                 ),

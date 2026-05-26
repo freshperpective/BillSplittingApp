@@ -62,7 +62,7 @@ class BalancesTab extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: 4, bottom: 6),
                   child: Text('By person',
-                      style: Theme.of(context).textTheme.titleSmall),
+                      style: Theme.of(context).textTheme.titleSmall,),
                 ),
                 ..._buildSections(context, rollup),
               ],
@@ -75,7 +75,7 @@ class BalancesTab extends ConsumerWidget {
 
   /// Owed-to-me first, then owed-by-me. Within each, largest amounts first.
   List<Widget> _buildSections(
-      BuildContext context, List<PeerBalance> rollup) {
+      BuildContext context, List<PeerBalance> rollup,) {
     final owedToMe = rollup.where((p) => p.peerOwesMe).toList();
     final iOwe = rollup.where((p) => !p.peerOwesMe).toList();
 
@@ -116,7 +116,7 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: TabbyTheme.amber.withOpacity(0.14),
+        color: TabbyTheme.amber.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -126,7 +126,7 @@ class _SummaryCard extends StatelessWidget {
               style: TextStyle(
                   color: TabbyTheme.dimOf(context),
                   fontSize: 13,
-                  fontWeight: FontWeight.w500)),
+                  fontWeight: FontWeight.w500,),),
           const SizedBox(height: 6),
           Text(
             netZero ? 'Settled up' : net.abs().toString(),
@@ -198,7 +198,7 @@ class _SummaryStat extends StatelessWidget {
         children: [
           Text(label,
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context), fontSize: 12)),
+                  color: TabbyTheme.dimOf(context), fontSize: 12,),),
           const SizedBox(height: 2),
           Text(
             amount.toString(),
@@ -231,11 +231,11 @@ class _PeerCard extends ConsumerWidget {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: TabbyTheme.amber.withOpacity(0.4),
+                backgroundColor: TabbyTheme.amber.withValues(alpha: 0.4),
                 child: Text(
                   initial,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, color: TabbyTheme.teal),
+                      fontWeight: FontWeight.w600, color: TabbyTheme.teal,),
                 ),
               ),
               const SizedBox(width: 12),
@@ -245,7 +245,7 @@ class _PeerCard extends ConsumerWidget {
                   children: [
                     Text(balance.peer.displayName,
                         style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500)),
+                            fontSize: 16, fontWeight: FontWeight.w500,),),
                     const SizedBox(height: 2),
                     Text(
                       peerOwes ? 'owes you' : 'you owe',
@@ -266,7 +266,7 @@ class _PeerCard extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
               Icon(Icons.chevron_right,
-                  size: 18, color: TabbyTheme.dimOf(context)),
+                  size: 18, color: TabbyTheme.dimOf(context),),
             ],
           ),
         ),
@@ -328,7 +328,7 @@ class _PeerBreakdownSheet extends ConsumerWidget {
                   children: [
                     Text(balance.peer.displayName,
                         style:
-                            Theme.of(context).textTheme.headlineSmall),
+                            Theme.of(context).textTheme.headlineSmall,),
                     const SizedBox(height: 2),
                     Text(
                       balance.peerOwesMe ? 'owes you' : 'you owe',
@@ -364,18 +364,18 @@ class _PeerBreakdownSheet extends ConsumerWidget {
             error: (e, _) => Padding(
               padding: const EdgeInsets.all(12),
               child: Text("Couldn't load groups: $e",
-                  style: const TextStyle(color: TabbyTheme.clay)),
+                  style: const TextStyle(color: TabbyTheme.clay),),
             ),
             data: (options) {
               if (options.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    "No bilateral group balance with ${balance.peer.displayName}. "
-                    "Their debt is routed through someone else by the simplifier — "
-                    "settle that link from the group page first.",
+                    'No bilateral group balance with ${balance.peer.displayName}. '
+                    'Their debt is routed through someone else by the simplifier — '
+                    'settle that link from the group page first.',
                     style: TextStyle(
-                        color: TabbyTheme.dimOf(context), fontSize: 13),
+                        color: TabbyTheme.dimOf(context), fontSize: 13,),
                   ),
                 );
               }
@@ -437,11 +437,11 @@ class _BreakdownRow extends ConsumerWidget {
                 height: 36,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: TabbyTheme.amber.withOpacity(0.2),
+                  color: TabbyTheme.amber.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(option.group.emoji,
-                    style: const TextStyle(fontSize: 18)),
+                    style: const TextStyle(fontSize: 18),),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -450,7 +450,7 @@ class _BreakdownRow extends ConsumerWidget {
                   children: [
                     Text(option.group.name,
                         style: const TextStyle(
-                            fontWeight: FontWeight.w500)),
+                            fontWeight: FontWeight.w500,),),
                     const SizedBox(height: 2),
                     Text(
                       peerOwesMeHere
@@ -525,17 +525,17 @@ class _EmptyState extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: TabbyTheme.amber.withOpacity(0.15),
+                color: TabbyTheme.amber.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
               child: const Icon(Icons.balance,
-                  size: 36, color: TabbyTheme.amber),
+                  size: 36, color: TabbyTheme.amber,),
             ),
             const SizedBox(height: 20),
             Text(title,
                 style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center),
+                textAlign: TextAlign.center,),
             const SizedBox(height: 8),
             Text(
               subtitle,

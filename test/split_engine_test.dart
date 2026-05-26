@@ -16,8 +16,8 @@ void main() {
         currency: 'INR',
         participants: [
           ParticipantInput(profileId: 'a', paid: d('300')),
-          ParticipantInput(profileId: 'b'),
-          ParticipantInput(profileId: 'c'),
+          const ParticipantInput(profileId: 'b'),
+          const ParticipantInput(profileId: 'c'),
         ],
       );
       // Compare as Decimal (not string) — the decimal package may drop
@@ -35,8 +35,8 @@ void main() {
         currency: 'INR',
         participants: [
           ParticipantInput(profileId: 'a', paid: d('100')),
-          ParticipantInput(profileId: 'b'),
-          ParticipantInput(profileId: 'c'),
+          const ParticipantInput(profileId: 'b'),
+          const ParticipantInput(profileId: 'c'),
         ],
       );
       final sum = r.shares
@@ -71,8 +71,8 @@ void main() {
         currency: 'USD',
         participants: [
           ParticipantInput(profileId: 'a', paid: d('90')),
-          ParticipantInput(profileId: 'b'),
-          ParticipantInput(profileId: 'c'),
+          const ParticipantInput(profileId: 'b'),
+          const ParticipantInput(profileId: 'c'),
         ],
       );
       // Construct a synthetic expense from the shares directly for testing.
@@ -83,12 +83,12 @@ void main() {
         settlements: [],
       );
       expect(bal.values.fold<Decimal>(Decimal.zero, (a, b) => a + b),
-          Decimal.zero);
+          Decimal.zero,);
       // Smoke check that the engine itself preserves invariant.
       final paid = r.shares.fold<Decimal>(
-          Decimal.zero, (a, b) => a + b.paidShare);
+          Decimal.zero, (a, b) => a + b.paidShare,);
       final owed = r.shares.fold<Decimal>(
-          Decimal.zero, (a, b) => a + b.owedShare);
+          Decimal.zero, (a, b) => a + b.owedShare,);
       expect(paid, owed);
     });
 

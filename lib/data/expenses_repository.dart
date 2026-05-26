@@ -44,7 +44,7 @@ class ExpensesRepository {
         .map((e) => Expense.fromJson(
               e,
               shares: sharesByExpense[e['id'] as String] ?? const [],
-            ))
+            ),)
         .toList();
   }
 
@@ -94,7 +94,7 @@ class ExpensesRepository {
               'profile_id': s.profileId,
               'paid_share': s.paidShare.toString(),
               'owed_share': s.owedShare.toString(),
-            })
+            },)
         .toList();
 
     await _client.from('expense_shares').insert(shareRows);
@@ -111,9 +111,9 @@ class ExpensesRepository {
         .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
         .eq('id', expenseId)
         .select();
-    if (res is! List || res.isEmpty) {
+    if (res.isEmpty) {
       throw Exception(
-          'Could not delete this expense. Only the creator can.');
+          'Could not delete this expense. Only the creator can.',);
     }
   }
 
@@ -147,9 +147,9 @@ class ExpensesRepository {
                 'profile_id': s.profileId,
                 'paid_share': s.paidShare.toString(),
                 'owed_share': s.owedShare.toString(),
-              })
+              },)
           .toList(),
-    });
+    },);
   }
 }
 

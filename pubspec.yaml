@@ -41,6 +41,7 @@ dependencies:
   flutter_svg: ^2.0.10+1
   image_picker: ^1.1.2
 
+  rational: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

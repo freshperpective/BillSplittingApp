@@ -168,7 +168,7 @@ class ActivityRow extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: r.tint.withOpacity(0.14),
+                  color: r.tint.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 alignment: Alignment.center,
@@ -181,19 +181,19 @@ class ActivityRow extends StatelessWidget {
                   children: [
                     Text(r.text,
                         style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500)),
+                            fontSize: 14, fontWeight: FontWeight.w500,),),
                     const SizedBox(height: 2),
                     Text(
                       relativeTime(event.createdAt),
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 12),
+                          color: TabbyTheme.dimOf(context), fontSize: 12,),
                     ),
                   ],
                 ),
               ),
               if (tap != null)
                 Icon(Icons.chevron_right,
-                    size: 18, color: TabbyTheme.dimOf(context)),
+                    size: 18, color: TabbyTheme.dimOf(context),),
             ],
           ),
         ),
@@ -217,7 +217,7 @@ String relativeTime(DateTime t) {
   // Older than two months: dd MMM (yyyy if not this year).
   const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ];
   final mon = months[t.month - 1];
   if (t.year == now.year) return '${t.day} $mon';

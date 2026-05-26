@@ -100,14 +100,14 @@ class _SettlementBody extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withOpacity(0.14),
+            color: TabbyTheme.amber.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('$from → $to',
-                  style: Theme.of(context).textTheme.headlineSmall),
+                  style: Theme.of(context).textTheme.headlineSmall,),
               const SizedBox(height: 6),
               Text(
                 '${settlement.currency} ${settlement.amount}',
@@ -120,13 +120,13 @@ class _SettlementBody extends ConsumerWidget {
               Row(
                 children: [
                   Icon(Icons.schedule_outlined,
-                      size: 14, color: TabbyTheme.dimOf(context)),
+                      size: 14, color: TabbyTheme.dimOf(context),),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'Logged ${dateFmt.format(settlement.createdAt.toLocal())}',
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 12),
+                          color: TabbyTheme.dimOf(context), fontSize: 12,),
                     ),
                   ),
                 ],
@@ -135,14 +135,14 @@ class _SettlementBody extends ConsumerWidget {
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                      horizontal: 12, vertical: 10,),
                   decoration: BoxDecoration(
                     color: TabbyTheme.cardFillOf(context),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: TabbyTheme.borderOf(context)),
                   ),
                   child: Text(settlement.note!,
-                      style: const TextStyle(fontSize: 13)),
+                      style: const TextStyle(fontSize: 13),),
                 ),
               ],
             ],
@@ -154,7 +154,7 @@ class _SettlementBody extends ConsumerWidget {
             onPressed: () => _confirmDelete(context, ref),
             icon: const Icon(Icons.delete_outline, color: TabbyTheme.clay),
             label: const Text('Delete payment',
-                style: TextStyle(color: TabbyTheme.clay)),
+                style: TextStyle(color: TabbyTheme.clay),),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: TabbyTheme.clay),
               minimumSize: const Size.fromHeight(48),
@@ -184,7 +184,7 @@ class _SettlementBody extends ConsumerWidget {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
@@ -232,10 +232,10 @@ class _MissingSettlement extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.help_outline,
-                size: 48, color: TabbyTheme.dimOf(context)),
+                size: 48, color: TabbyTheme.dimOf(context),),
             const SizedBox(height: 12),
             Text("Couldn't find that payment.",
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 6),
             Text(
               'It may have been deleted. Go back to refresh.',

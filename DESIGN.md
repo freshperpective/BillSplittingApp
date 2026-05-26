@@ -236,13 +236,13 @@ The brand is "warm ledger" — paper-like surfaces, teal/amber palette, mixed sa
 
 ## 11. Roadmap
 
-- **v0.1 (this scaffold)** — Auth, groups, equal-split expenses, balances. Single currency.
-- **v0.2** — All four split modes, settle-up, activity feed.
-- **v0.3** — Multi-currency with fx snapshot, receipt uploads via Supabase Storage.
-- **v0.4** — Simplify-debts view, group archive, dark theme polish.
-- **v1.0** — Push notifications, deep links from notifications, onboarding flow, beta on TestFlight + Play Internal Testing.
-- **v1.1** — Friend list (without groups), CSV export.
-- **v1.2** — Recurring expenses, search.
+- ~~**v0.1**~~ ✅ — Auth, groups, equal-split expenses, balances. Single currency.
+- ~~**v0.2**~~ ✅ — All four split modes + Adjust, settle-up, activity feed, expense edit/delete, member remove/leave, archive group, profile editing.
+- ~~**v0.3**~~ ✅ — Multi-currency with FX snapshot, receipt uploads via Supabase Storage, splash screen, app icon, dark theme polish, simplify-debts toggle, collapsible archive section.
+- **v1.0 (next)** — Submit to TestFlight + Play Internal Testing. Push notifications (Supabase webhooks → Edge Function → APNs/FCM). Onboarding flow.
+- **v1.1** — Invite system (email invite via Edge Function, deep link joins). Friend list / 1:1 groups.
+- **v1.2** — Live FX rates (scheduled Edge Function, ECB/Open Exchange Rates). CSV export. Search (tsvector + GIN index).
+- **v2.0** — Recurring expenses. Offline-first reads via Drift. OCR receipt pre-fill.
 
 ## 12. What's not in this repo
 
@@ -252,4 +252,4 @@ The brand is "warm ledger" — paper-like surfaces, teal/amber palette, mixed sa
 
 ---
 
-*Last updated 2026-05-19. This document leads the code: if you change a screen flow or schema, update this file in the same commit.*
+*Last updated 2026-05-26. This document leads the code: if you change a screen flow or schema, update this file in the same commit.*

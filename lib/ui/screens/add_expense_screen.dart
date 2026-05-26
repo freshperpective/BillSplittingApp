@@ -64,9 +64,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   bool _saving = false;
   String? _error;
 
-  /// When editing, the original expense whose date we preserve on save.
-  /// Set once when pre-population runs and never mutated after.
-  Expense? _editing;
   DateTime? _originalPaidAt;
   String? _originalCategory;
   String? _originalNote;
@@ -282,7 +279,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     // Expense isn't in cache yet — show spinner; the
                     // provider will resolve and rebuild.
                     return const Center(
-                        child: CircularProgressIndicator());
+                        child: CircularProgressIndicator(),);
                   }
                   _prepopulateFrom(expense, list);
                   // _prepopulateFrom sets _prepopulated; fall through.
@@ -315,7 +312,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   void _close() {
     if (widget.isEditing) {
       context.go(
-          '/group/${widget.groupId}/expense/${widget.expenseId}');
+          '/group/${widget.groupId}/expense/${widget.expenseId}',);
     } else {
       context.go('/group/${widget.groupId}');
     }
@@ -355,7 +352,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       _controllerFor(m.id).text = v.toString();
     }
 
-    _editing = exp;
     _originalPaidAt = exp.paidAt;
     _originalCategory = exp.category;
     _originalNote = exp.note;
@@ -391,19 +387,19 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       controller: _amount,
                       onChanged: (_) => _onAmountChange(members),
                       keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                          decimal: true,),
                       decoration: const InputDecoration(labelText: 'Amount'),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _currency,
+                      initialValue: _currency,
                       decoration:
                           const InputDecoration(labelText: 'Currency'),
                       items: FxRates.supported
                           .map((c) =>
-                              DropdownMenuItem(value: c, child: Text(c)))
+                              DropdownMenuItem(value: c, child: Text(c)),)
                           .toList(),
                       onChanged: (v) =>
                           setState(() => _currency = v ?? _groupCurrency),
@@ -413,11 +409,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<String>(
-                value: _payerId,
+                initialValue: _payerId,
                 decoration: const InputDecoration(labelText: 'Paid by'),
                 items: members
                     .map((m) => DropdownMenuItem(
-                        value: m.id, child: Text(m.displayName)))
+                        value: m.id, child: Text(m.displayName),),)
                     .toList(),
                 onChanged: (v) => setState(() => _payerId = v),
               ),
@@ -433,7 +429,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     label: Text(_labelFor(mode)),
                     selected: selected,
                     onSelected: (_) => _onModeChange(mode, members),
-                    selectedColor: TabbyTheme.teal.withOpacity(0.18),
+                    selectedColor: TabbyTheme.teal.withValues(alpha: 0.18),
                     labelStyle: TextStyle(
                       color:
                           selected ? TabbyTheme.teal : TabbyTheme.dimOf(context),
@@ -461,7 +457,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               if (_error != null) ...[
                 const SizedBox(height: 12),
                 Text(_error!,
-                    style: const TextStyle(color: TabbyTheme.clay)),
+                    style: const TextStyle(color: TabbyTheme.clay),),
               ],
             ],
           ),
@@ -480,7 +476,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2),
+                        color: Colors.white, strokeWidth: 2,),
                   )
                 : Text(widget.isEditing ? 'Save changes' : 'Save expense'),
           ),
@@ -566,14 +562,14 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         // After create, back to the group list.
         if (widget.isEditing) {
           context.go(
-              '/group/${widget.groupId}/expense/${widget.expenseId}');
+              '/group/${widget.groupId}/expense/${widget.expenseId}',);
         } else {
           context.go('/group/${widget.groupId}');
         }
       }
     } catch (e) {
       setState(
-          () => _error = e.toString().replaceFirst('Exception: ', ''));
+          () => _error = e.toString().replaceFirst('Exception: ', ''),);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -635,7 +631,7 @@ class _MemberInputList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       decoration: BoxDecoration(
-        color: TabbyTheme.amber.withOpacity(0.10),
+        color: TabbyTheme.amber.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -652,7 +648,7 @@ class _MemberInputList extends StatelessWidget {
                 Text(
                   preview,
                   style: TextStyle(
-                      color: TabbyTheme.dimOf(context), fontSize: 12),
+                      color: TabbyTheme.dimOf(context), fontSize: 12,),
                 ),
             ],
           ),
@@ -675,7 +671,7 @@ class _MemberInputList extends StatelessWidget {
                     const Padding(
                       padding: EdgeInsets.only(right: 6),
                       child: Icon(Icons.push_pin,
-                          size: 14, color: TabbyTheme.teal),
+                          size: 14, color: TabbyTheme.teal,),
                     ),
                   Expanded(
                     child: Text(
@@ -689,7 +685,7 @@ class _MemberInputList extends StatelessWidget {
                   ),
                   if (isEqual)
                     const Icon(Icons.check,
-                        size: 18, color: TabbyTheme.teal)
+                        size: 18, color: TabbyTheme.teal,)
                   else
                     SizedBox(
                       width: 130,
@@ -697,12 +693,12 @@ class _MemberInputList extends StatelessWidget {
                         controller: controllerFor(m.id),
                         keyboardType:
                             const TextInputType.numberWithOptions(
-                                decimal: true),
+                                decimal: true,),
                         textAlign: TextAlign.right,
                         decoration: InputDecoration(
                           isDense: true,
                           contentPadding: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 10),
+                              vertical: 8, horizontal: 10,),
                           suffixText: _suffixFor(mode),
                           hintText: '0',
                           filled: true,
@@ -736,13 +732,13 @@ class _ValidationBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: TabbyTheme.clay.withOpacity(0.12),
+        color: TabbyTheme.clay.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
           const Icon(Icons.error_outline,
-              color: TabbyTheme.clay, size: 18),
+              color: TabbyTheme.clay, size: 18,),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -772,13 +768,13 @@ class _ArchivedNotice extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.archive_outlined,
-                size: 48, color: TabbyTheme.dimOf(context)),
+                size: 48, color: TabbyTheme.dimOf(context),),
             const SizedBox(height: 12),
-            Text("This group is archived.",
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text('This group is archived.',
+                style: Theme.of(context).textTheme.headlineSmall,),
             const SizedBox(height: 8),
             Text(
-              "Unarchive it from the group page to add new expenses.",
+              'Unarchive it from the group page to add new expenses.',
               textAlign: TextAlign.center,
               style: TextStyle(color: TabbyTheme.dimOf(context)),
             ),

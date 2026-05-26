@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -98,7 +97,7 @@ class _ExpenseActionsMenu extends ConsumerWidget {
         switch (v) {
           case 'edit':
             context.go(
-                '/group/$groupId/expense/${expense.id}/edit');
+                '/group/$groupId/expense/${expense.id}/edit',);
             break;
           case 'delete':
             await _confirmDelete(context, ref);
@@ -112,7 +111,7 @@ class _ExpenseActionsMenu extends ConsumerWidget {
             Icon(Icons.edit_outlined, size: 18),
             SizedBox(width: 12),
             Text('Edit expense'),
-          ]),
+          ],),
         ),
         PopupMenuItem(
           value: 'delete',
@@ -120,8 +119,8 @@ class _ExpenseActionsMenu extends ConsumerWidget {
             Icon(Icons.delete_outline, size: 18, color: TabbyTheme.clay),
             SizedBox(width: 12),
             Text('Delete expense',
-                style: TextStyle(color: TabbyTheme.clay)),
-          ]),
+                style: TextStyle(color: TabbyTheme.clay),),
+          ],),
         ),
       ],
     );
@@ -132,7 +131,7 @@ class _ExpenseActionsMenu extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete this expense?'),
-        content: Text(
+        content: const Text(
           'It will disappear from the group, balances will recalculate, '
           'and the activity feed will record the removal. '
           'Existing settlements stay put.',
@@ -140,7 +139,7 @@ class _ExpenseActionsMenu extends ConsumerWidget {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
@@ -215,7 +214,7 @@ class _ExpenseDetailBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withOpacity(0.14),
+            color: TabbyTheme.amber.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -237,32 +236,32 @@ class _ExpenseDetailBody extends StatelessWidget {
               Row(
                 children: [
                   Icon(Icons.person_outline,
-                      size: 16, color: TabbyTheme.dimOf(context)),
+                      size: 16, color: TabbyTheme.dimOf(context),),
                   const SizedBox(width: 4),
                   Text('Paid by $payerLabel',
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 13)),
+                          color: TabbyTheme.dimOf(context), fontSize: 13,),),
                   const SizedBox(width: 16),
                   Icon(Icons.event,
-                      size: 16, color: TabbyTheme.dimOf(context)),
+                      size: 16, color: TabbyTheme.dimOf(context),),
                   const SizedBox(width: 4),
                   Text(dateFmt.format(expense.paidAt),
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 13)),
+                          color: TabbyTheme.dimOf(context), fontSize: 13,),),
                 ],
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
                   Icon(Icons.schedule_outlined,
-                      size: 14, color: TabbyTheme.dimOf(context)),
+                      size: 14, color: TabbyTheme.dimOf(context),),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'Added ${createdFmt.format(expense.createdAt.toLocal())} '
                       'by ${_name(expense.createdBy)}',
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 12),
+                          color: TabbyTheme.dimOf(context), fontSize: 12,),
                     ),
                   ),
                 ],
@@ -276,7 +275,7 @@ class _ExpenseDetailBody extends StatelessWidget {
         _ReceiptStrip(expenseId: expense.id, isCreator: isCreator),
         const SizedBox(height: 20),
         Text('Breakdown',
-            style: Theme.of(context).textTheme.titleSmall),
+            style: Theme.of(context).textTheme.titleSmall,),
         const SizedBox(height: 8),
         // Per-member rows showing what each person paid and owes.
         ...expense.shares.map((share) {
@@ -290,7 +289,7 @@ class _ExpenseDetailBody extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: TabbyTheme.amber.withOpacity(0.4),
+                  backgroundColor: TabbyTheme.amber.withValues(alpha: 0.4),
                   child: Text(
                     _name(share.profileId).isNotEmpty
                         ? _name(share.profileId)
@@ -299,7 +298,7 @@ class _ExpenseDetailBody extends StatelessWidget {
                         : '?',
                     style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: TabbyTheme.teal),
+                        color: TabbyTheme.teal,),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -309,12 +308,12 @@ class _ExpenseDetailBody extends StatelessWidget {
                     children: [
                       Text(_name(share.profileId),
                           style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w500)),
+                              fontSize: 15, fontWeight: FontWeight.w500,),),
                       const SizedBox(height: 2),
                       Text(
                         'Owes ${expense.currency} ${share.owedShare}',
                         style: TextStyle(
-                            color: TabbyTheme.dimOf(context), fontSize: 12),
+                            color: TabbyTheme.dimOf(context), fontSize: 12,),
                       ),
                     ],
                   ),
@@ -322,10 +321,7 @@ class _ExpenseDetailBody extends StatelessWidget {
                 Text(
                   isZero
                       ? '—'
-                      : (isPositive ? '+' : '−') +
-                          expense.currency +
-                          ' ' +
-                          net.abs().toString(),
+                      : '${isPositive ? '+' : '−'}${expense.currency} ${net.abs()}',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -401,7 +397,7 @@ class _ReceiptStripState extends ConsumerState<_ReceiptStrip> {
     } catch (e) {
       if (mounted) {
         setState(() =>
-            _uploadError = e.toString().replaceFirst('Exception: ', ''));
+            _uploadError = e.toString().replaceFirst('Exception: ', ''),);
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -422,7 +418,7 @@ class _ReceiptStripState extends ConsumerState<_ReceiptStrip> {
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
-                backgroundColor: TabbyTheme.clay),
+                backgroundColor: TabbyTheme.clay,),
             child: const Text('Remove'),
           ),
         ],
@@ -555,7 +551,7 @@ class _ReceiptStripState extends ConsumerState<_ReceiptStrip> {
               Text(
                 _uploadError!,
                 style: const TextStyle(
-                    color: TabbyTheme.clay, fontSize: 12),
+                    color: TabbyTheme.clay, fontSize: 12,),
               ),
             ],
           ],
@@ -598,7 +594,7 @@ class _ReceiptThumbnail extends StatelessWidget {
                   return Container(
                     width: 80,
                     height: 80,
-                    color: TabbyTheme.amber.withOpacity(0.15),
+                    color: TabbyTheme.amber.withValues(alpha: 0.15),
                     child: const Center(
                       child: SizedBox(
                         width: 20,
@@ -612,7 +608,7 @@ class _ReceiptThumbnail extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: TabbyTheme.amber.withOpacity(0.15),
+                    color: TabbyTheme.amber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -665,10 +661,10 @@ class _AddPhotoButton extends StatelessWidget {
         width: 80,
         height: 80,
         decoration: BoxDecoration(
-          color: TabbyTheme.amber.withOpacity(0.12),
+          color: TabbyTheme.amber.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: TabbyTheme.amber.withOpacity(0.40),
+            color: TabbyTheme.amber.withValues(alpha: 0.40),
           ),
         ),
         child: Column(
@@ -706,10 +702,10 @@ class _MissingExpense extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.help_outline,
-                size: 48, color: TabbyTheme.dimOf(context)),
+                size: 48, color: TabbyTheme.dimOf(context),),
             const SizedBox(height: 12),
             Text("Couldn't find that expense.",
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 6),
             Text(
               'It may have been deleted. Go back to refresh the list.',

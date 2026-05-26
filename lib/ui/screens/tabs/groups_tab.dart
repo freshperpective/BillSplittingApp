@@ -18,7 +18,7 @@ class GroupsTab extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Groups',
-            style: Theme.of(context).textTheme.displaySmall),
+            style: Theme.of(context).textTheme.displaySmall,),
         toolbarHeight: 72,
         actions: [
           IconButton(
@@ -78,7 +78,7 @@ class GroupsTab extends ConsumerWidget {
                     shape: const Border(),
                     collapsedShape: const Border(),
                     leading: Icon(Icons.archive_outlined,
-                        size: 16, color: TabbyTheme.dimOf(context)),
+                        size: 16, color: TabbyTheme.dimOf(context),),
                     title: Text(
                       'Archived (${archived.length})',
                       style: Theme.of(context)
@@ -133,24 +133,24 @@ class _GroupCard extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withOpacity(archived ? 0.10 : 0.18),
+            color: TabbyTheme.amber.withValues(alpha: archived ? 0.10 : 0.18),
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
           child: Text(group.emoji, style: const TextStyle(fontSize: 24)),
         ),
         title: Text(group.name,
-            style: Theme.of(context).textTheme.titleMedium),
+            style: Theme.of(context).textTheme.titleMedium,),
         subtitle: Row(
           children: [
             Text(group.defaultCurrency,
                 style: TextStyle(
-                    color: TabbyTheme.dimOf(context), fontSize: 12)),
+                    color: TabbyTheme.dimOf(context), fontSize: 12,),),
             if (archived) ...[
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 6, vertical: 2),
+                    horizontal: 6, vertical: 2,),
                 decoration: BoxDecoration(
                   color: TabbyTheme.mist,
                   borderRadius: BorderRadius.circular(6),
@@ -159,7 +159,7 @@ class _GroupCard extends StatelessWidget {
                     style: TextStyle(
                         color: TabbyTheme.dimOf(context),
                         fontSize: 10,
-                        fontWeight: FontWeight.w500)),
+                        fontWeight: FontWeight.w500,),),
               ),
             ],
           ],
@@ -184,10 +184,10 @@ class _NoGroups extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.groups_outlined,
-                size: 56, color: TabbyTheme.teal),
+                size: 56, color: TabbyTheme.teal,),
             const SizedBox(height: 16),
             Text('No groups yet',
-                style: Theme.of(context).textTheme.headlineSmall),
+                style: Theme.of(context).textTheme.headlineSmall,),
             const SizedBox(height: 8),
             Text(
               'Start a group for the trip, the flat, or the dinner club.',
@@ -270,12 +270,12 @@ class _NewGroupSheetState extends ConsumerState<_NewGroupSheet> {
                       label: Text(e, style: const TextStyle(fontSize: 18)),
                       selected: _emoji == e,
                       onSelected: (_) => setState(() => _emoji = e),
-                    ))
+                    ),)
                 .toList(),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: _currency,
+            initialValue: _currency,
             decoration: const InputDecoration(labelText: 'Default currency'),
             items: FxRates.supported
                 .map((c) => DropdownMenuItem(value: c, child: Text(c)))
@@ -294,7 +294,7 @@ class _NewGroupSheetState extends ConsumerState<_NewGroupSheet> {
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2),
+                        color: Colors.white, strokeWidth: 2,),
                   )
                 : const Text('Create group'),
           ),

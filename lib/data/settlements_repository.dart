@@ -48,9 +48,9 @@ class SettlementsRepository {
   Future<void> delete(String id) async {
     final res =
         await _client.from('settlements').delete().eq('id', id).select();
-    if (res is! List || res.isEmpty) {
+    if (res.isEmpty) {
       throw Exception(
-          'Could not delete this payment. Only the people involved can.');
+          'Could not delete this payment. Only the people involved can.',);
     }
   }
 

@@ -118,12 +118,12 @@ class ReceiptsRepository {
     final result = <Receipt>[];
     for (var i = 0; i < rows.length && i < signed.length; i++) {
       final url = signed[i].signedUrl;
-      if (url == null || url.isEmpty) continue;
+      if (url.isEmpty) continue;
       result.add(Receipt(
         id: rows[i]['id'] as String,
         storagePath: paths[i],
         signedUrl: url,
-      ));
+      ),);
     }
     return result;
   }
@@ -147,7 +147,7 @@ class ReceiptsRepository {
         .delete()
         .eq('storage_path', storagePath)
         .select();
-    if (res is! List || res.isEmpty) {
+    if (res.isEmpty) {
       throw Exception('Could not remove this receipt.');
     }
   }

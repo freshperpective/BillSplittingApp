@@ -97,8 +97,8 @@ class GroupDetailScreen extends ConsumerWidget {
                 return RefreshIndicator(
                   onRefresh: () async {
                     ref.invalidate(groupBalanceProvider(groupId));
-                    await ref.refresh(
-                        groupExpensesProvider(groupId).future);
+                    ref.invalidate(groupExpensesProvider(groupId));
+                    await ref.read(groupExpensesProvider(groupId).future);
                   },
                   child: ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -155,7 +155,7 @@ class _OwnerMenu extends ConsumerWidget {
               Icon(Icons.unarchive_outlined, size: 18),
               SizedBox(width: 12),
               Text('Unarchive group'),
-            ]),
+            ],),
           )
         else
           const PopupMenuItem(
@@ -164,7 +164,7 @@ class _OwnerMenu extends ConsumerWidget {
               Icon(Icons.archive_outlined, size: 18),
               SizedBox(width: 12),
               Text('Archive group'),
-            ]),
+            ],),
           ),
         const PopupMenuItem(
           value: 'delete',
@@ -172,8 +172,8 @@ class _OwnerMenu extends ConsumerWidget {
             Icon(Icons.delete_outline, size: 18, color: TabbyTheme.clay),
             SizedBox(width: 12),
             Text('Delete group',
-                style: TextStyle(color: TabbyTheme.clay)),
-          ]),
+                style: TextStyle(color: TabbyTheme.clay),),
+          ],),
         ),
       ],
     );
@@ -198,7 +198,7 @@ class _OwnerMenu extends ConsumerWidget {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style:
@@ -219,13 +219,13 @@ class _OwnerMenu extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(archive ? 'Archived.' : 'Brought back.'),
-        ));
+        ),);
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Couldn't update: $e"),
-        ));
+        ),);
       }
     }
   }
@@ -258,6 +258,7 @@ class _OwnerMenu extends ConsumerWidget {
       return 'Someone';
     }
 
+    if (!context.mounted) return;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -273,7 +274,7 @@ class _OwnerMenu extends ConsumerWidget {
             if (hasOpenDebts) ...[
               const SizedBox(height: 12),
               const Text('There are still open balances here:',
-                  style: TextStyle(fontWeight: FontWeight.w600)),
+                  style: TextStyle(fontWeight: FontWeight.w600),),
               const SizedBox(height: 6),
               for (final t in myTransfers)
                 Padding(
@@ -283,7 +284,7 @@ class _OwnerMenu extends ConsumerWidget {
                         ? '• ${nameOf(t.from)} owes you ${t.amount}'
                         : '• You owe ${nameOf(t.to)} ${t.amount}',
                     style: const TextStyle(
-                        color: TabbyTheme.clay, fontSize: 13),
+                        color: TabbyTheme.clay, fontSize: 13,),
                   ),
                 ),
             ],
@@ -292,7 +293,7 @@ class _OwnerMenu extends ConsumerWidget {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
@@ -368,7 +369,7 @@ class _GroupMetaLine extends StatelessWidget {
             child: Text(
               'Created by $creatorLabel · ${dateFmt.format(group.createdAt.toLocal())}',
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context), fontSize: 12),
+                  color: TabbyTheme.dimOf(context), fontSize: 12,),
             ),
           ),
         ],
@@ -389,11 +390,11 @@ class _ArchivedBanner extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.archive_outlined,
-              size: 16, color: TabbyTheme.dimOf(context)),
+              size: 16, color: TabbyTheme.dimOf(context),),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              "Archived — read-only. Unarchive to add new expenses.",
+              'Archived — read-only. Unarchive to add new expenses.',
               style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 13),
             ),
           ),
@@ -450,10 +451,10 @@ class _GroupBalanceStrip extends ConsumerWidget {
 
         // Shared container decoration used by both views.
         BoxDecoration stripDecoration() => BoxDecoration(
-              color: TabbyTheme.amber.withOpacity(0.14),
+              color: TabbyTheme.amber.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
               border:
-                  Border.all(color: TabbyTheme.amber.withOpacity(0.35)),
+                  Border.all(color: TabbyTheme.amber.withValues(alpha: 0.35)),
             );
 
         // Toggle button shown in the top-right corner of the strip.
@@ -505,7 +506,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                         child: Text(
                           'Your transfers',
                           style: TextStyle(
-                              color: TabbyTheme.dimOf(context), fontSize: 11),
+                              color: TabbyTheme.dimOf(context), fontSize: 11,),
                         ),
                       ),
                       toggleButton(),
@@ -534,7 +535,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 9),
+                          horizontal: 10, vertical: 9,),
                       child: Row(
                         children: [
                           Icon(
@@ -549,18 +550,18 @@ class _GroupBalanceStrip extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(label,
-                                style: const TextStyle(fontSize: 14)),
+                                style: const TextStyle(fontSize: 14),),
                           ),
                           Text(
                             '${balance.currency} '
                             '${t.amount.round(scale: decimals)}',
                             style: amountStyle(context,
-                                    positive: theyOweMe)
+                                    positive: theyOweMe,)
                                 .copyWith(fontSize: 16),
                           ),
                           const SizedBox(width: 6),
                           Icon(Icons.handshake_outlined,
-                              size: 16, color: TabbyTheme.dimOf(context)),
+                              size: 16, color: TabbyTheme.dimOf(context),),
                         ],
                       ),
                     ),
@@ -597,7 +598,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                       child: Text(
                         'Everyone\'s balance',
                         style: TextStyle(
-                            color: TabbyTheme.dimOf(context), fontSize: 11),
+                            color: TabbyTheme.dimOf(context), fontSize: 11,),
                       ),
                     ),
                     toggleButton(),
@@ -611,7 +612,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                     isMe ? 'You' : _name(entry.key);
                 return Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 9),
+                      horizontal: 10, vertical: 9,),
                   child: Row(
                     children: [
                       Icon(
@@ -639,7 +640,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                         '${balance.currency} '
                         '${entry.value.abs().round(scale: decimals)}',
                         style: amountStyle(context,
-                                positive: isCreditor)
+                                positive: isCreditor,)
                             .copyWith(fontSize: 16),
                       ),
                     ],
@@ -682,20 +683,20 @@ class _GroupBalanceStrip extends ConsumerWidget {
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: TabbyTheme.teal.withOpacity(0.10),
+        color: TabbyTheme.teal.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: TabbyTheme.teal.withOpacity(0.30)),
+        border: Border.all(color: TabbyTheme.teal.withValues(alpha: 0.30)),
       ),
-      child: Row(
-        children: const [
+      child: const Row(
+        children: [
           Icon(Icons.check_circle_outline,
-              size: 18, color: TabbyTheme.teal),
+              size: 18, color: TabbyTheme.teal,),
           SizedBox(width: 8),
           Text("You're all settled in this group.",
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: TabbyTheme.teal)),
+                  color: TabbyTheme.teal,),),
         ],
       ),
     );
@@ -746,14 +747,14 @@ class _ExpenseRow extends StatelessWidget {
     return Card(
       child: ListTile(
         onTap: () => context.go(
-            '/group/${expense.groupId}/expense/${expense.id}'),
+            '/group/${expense.groupId}/expense/${expense.id}',),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         leading: Container(
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withOpacity(0.16),
+            color: TabbyTheme.amber.withValues(alpha: 0.16),
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
@@ -770,7 +771,7 @@ class _ExpenseRow extends StatelessWidget {
             Text(
               'Paid by $payerLabel · ${expense.currency} ${expense.amount}',
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context), fontSize: 12),
+                  color: TabbyTheme.dimOf(context), fontSize: 12,),
             ),
             const SizedBox(height: 2),
             Text(
@@ -779,19 +780,16 @@ class _ExpenseRow extends StatelessWidget {
               // expense gets entered days after the fact.
               'added ${relativeTime(expense.createdAt)}',
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context), fontSize: 11),
+                  color: TabbyTheme.dimOf(context), fontSize: 11,),
             ),
           ],
         ),
         isThreeLine: true,
         trailing: youAreZero
             ? Text('settled',
-                style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 12))
+                style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 12),)
             : Text(
-                (youArePositive ? '+' : '−') +
-                    expense.currency +
-                    ' ' +
-                    net.abs().toString(),
+                '${youArePositive ? '+' : '−'}${expense.currency} ${net.abs()}',
                 style: amountStyle(context, positive: youArePositive),
               ),
       ),
@@ -858,7 +856,7 @@ class _GroupActivitySheet extends ConsumerWidget {
           Row(
             children: [
               Text('Activity',
-                  style: Theme.of(context).textTheme.headlineSmall),
+                  style: Theme.of(context).textTheme.headlineSmall,),
               const Spacer(),
               IconButton(
                 tooltip: 'Refresh',
@@ -985,6 +983,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
       return 'Someone';
     }
 
+    if (!mounted) return;
     final title = isSelf ? 'Leave this group?' : 'Remove $displayName?';
     final body = isSelf
         ? 'You\'ll lose access to this group. Existing expenses stay '
@@ -1018,7 +1017,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                   child: Text(
                     '• ${nameOf(t.from)} → ${nameOf(t.to)} ${t.amount}',
                     style: const TextStyle(
-                        color: TabbyTheme.clay, fontSize: 13),
+                        color: TabbyTheme.clay, fontSize: 13,),
                   ),
                 ),
             ],
@@ -1027,13 +1026,13 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
             child: Text(hasOpen
                 ? (isSelf ? 'Leave anyway' : 'Remove anyway')
-                : (isSelf ? 'Leave' : 'Remove')),
+                : (isSelf ? 'Leave' : 'Remove'),),
           ),
         ],
       ),
@@ -1098,7 +1097,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
       final profile = await repo.findProfileByEmail(email);
       if (profile == null) {
         setState(() => _error =
-            'No Tabby account for that email. Ask them to sign up first.');
+            'No Tabby account for that email. Ask them to sign up first.',);
         return;
       }
 
@@ -1122,7 +1121,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
       setState(() => _success = 'Added ${profile.displayName}.');
     } catch (e) {
       setState(() =>
-          _error = e.toString().replaceFirst('Exception: ', ''));
+          _error = e.toString().replaceFirst('Exception: ', ''),);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -1150,9 +1149,9 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
-                "This group is archived — adding members is paused.",
+                'This group is archived — adding members is paused.',
                 style: TextStyle(
-                    color: TabbyTheme.dimOf(context), fontSize: 13),
+                    color: TabbyTheme.dimOf(context), fontSize: 13,),
               ),
             ),
           Row(
@@ -1183,7 +1182,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2),
+                            color: Colors.white, strokeWidth: 2,),
                       )
                     : const Text('Add'),
               ),
@@ -1192,16 +1191,16 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
           if (_error != null) ...[
             const SizedBox(height: 10),
             Text(_error!,
-                style: const TextStyle(color: TabbyTheme.clay, fontSize: 13)),
+                style: const TextStyle(color: TabbyTheme.clay, fontSize: 13),),
           ],
           if (_success != null) ...[
             const SizedBox(height: 10),
             Text(_success!,
-                style: const TextStyle(color: TabbyTheme.teal, fontSize: 13)),
+                style: const TextStyle(color: TabbyTheme.teal, fontSize: 13),),
           ],
           const SizedBox(height: 18),
           Text('In this group',
-              style: Theme.of(context).textTheme.titleSmall),
+              style: Theme.of(context).textTheme.titleSmall,),
           const SizedBox(height: 6),
           members.when(
             loading: () => const Padding(
@@ -1209,7 +1208,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (e, _) => Text('Could not load members: $e',
-                style: const TextStyle(color: TabbyTheme.clay)),
+                style: const TextStyle(color: TabbyTheme.clay),),
             data: (list) {
               // Group.createdBy is the source of truth for the owner in v0.3
               // (we don't support transferring ownership yet). When that
@@ -1233,14 +1232,14 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
-                      backgroundColor: TabbyTheme.amber.withOpacity(0.4),
+                      backgroundColor: TabbyTheme.amber.withValues(alpha: 0.4),
                       child: Text(
                         m.displayName.isNotEmpty
                             ? m.displayName.substring(0, 1).toUpperCase()
                             : '?',
                         style: const TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: TabbyTheme.teal),
+                            color: TabbyTheme.teal,),
                       ),
                     ),
                     title: Row(
@@ -1250,9 +1249,9 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                                horizontal: 6, vertical: 2,),
                             decoration: BoxDecoration(
-                              color: TabbyTheme.teal.withOpacity(0.14),
+                              color: TabbyTheme.teal.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
@@ -1260,7 +1259,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                               style: TextStyle(
                                   color: TabbyTheme.teal,
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w600),
+                                  fontWeight: FontWeight.w600,),
                             ),
                           ),
                         ],
@@ -1268,19 +1267,19 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                     ),
                     subtitle: Text(m.defaultCurrency,
                         style: TextStyle(
-                            color: TabbyTheme.dimOf(context), fontSize: 12)),
+                            color: TabbyTheme.dimOf(context), fontSize: 12,),),
                     trailing: showLeave
                         ? IconButton(
                             tooltip: 'Leave group',
                             icon: const Icon(Icons.logout,
-                                color: TabbyTheme.clay),
+                                color: TabbyTheme.clay,),
                             onPressed: () => _confirmLeave(),
                           )
                         : showRemove
                             ? IconButton(
                                 tooltip: 'Remove member',
                                 icon: const Icon(Icons.person_remove_outlined,
-                                    color: TabbyTheme.clay),
+                                    color: TabbyTheme.clay,),
                                 onPressed: () =>
                                     _confirmRemove(member: m),
                               )
@@ -1308,10 +1307,10 @@ class _GroupEmpty extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.receipt_long,
-                size: 56, color: TabbyTheme.teal),
+                size: 56, color: TabbyTheme.teal,),
             const SizedBox(height: 16),
             Text('No expenses yet',
-                style: Theme.of(context).textTheme.headlineSmall),
+                style: Theme.of(context).textTheme.headlineSmall,),
             const SizedBox(height: 8),
             Text(
               'Tap the button below to add the first one.',

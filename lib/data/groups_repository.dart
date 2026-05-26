@@ -57,7 +57,7 @@ class GroupsRepository {
     return (rows as List)
         .map((r) => Profile.fromJson(
               (r['profiles'] as Map).cast<String, dynamic>(),
-            ))
+            ),)
         .toList();
   }
 
@@ -111,7 +111,7 @@ class GroupsRepository {
         .eq('group_id', groupId)
         .eq('profile_id', profileId)
         .select();
-    if (res is! List || res.isEmpty) {
+    if (res.isEmpty) {
       throw Exception(
           'Could not remove this member. Owners can remove non-owners, '
           'and any member can leave on their own — anything else needs '
@@ -180,7 +180,7 @@ class GroupsRepository {
         .delete()
         .eq('id', groupId)
         .select();
-    if (res is! List || res.isEmpty) {
+    if (res.isEmpty) {
       throw Exception(
           'Could not delete this group. You may not have permission, '
           'or it may already be gone.');
