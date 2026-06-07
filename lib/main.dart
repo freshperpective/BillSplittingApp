@@ -14,5 +14,5 @@ Future<void> main() async {
     debug: false,
   );
 
-  runApp(const ProviderScope(child: TabbyApp()));
+  runApp(const ProviderScope(child: SortedApp()));
 }

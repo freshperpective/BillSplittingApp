@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models.dart';
 import '../../data/activity_repository.dart';
-import '../theme/tabby_theme.dart';
+import '../theme/sorted_theme.dart';
 
 /// Reusable row that renders a single [ActivityEvent] — used by both the
 /// cross-group Activity tab and the per-group activity sheet on group
@@ -46,7 +46,7 @@ class ActivityRow extends StatelessWidget {
         final amt = payload['amount'] ?? '';
         return (
           icon: Icons.add_circle_outline,
-          tint: TabbyTheme.teal,
+          tint: SortedTheme.teal,
           text: '$actor added "$desc" ($cur $amt)$groupSuffix',
         );
 
@@ -54,7 +54,7 @@ class ActivityRow extends StatelessWidget {
         final desc = payload['description'] ?? 'an expense';
         return (
           icon: Icons.edit_outlined,
-          tint: TabbyTheme.amber,
+          tint: SortedTheme.amber,
           text: '$actor edited "$desc"$groupSuffix',
         );
 
@@ -62,7 +62,7 @@ class ActivityRow extends StatelessWidget {
         final desc = payload['description'] ?? 'an expense';
         return (
           icon: Icons.delete_outline,
-          tint: TabbyTheme.clay,
+          tint: SortedTheme.clay,
           text: '$actor deleted "$desc"$groupSuffix',
         );
 
@@ -80,7 +80,7 @@ class ActivityRow extends StatelessWidget {
             : '$actor logged $fromName → $toName ($cur $amt)$groupSuffix';
         return (
           icon: Icons.handshake_outlined,
-          tint: TabbyTheme.teal,
+          tint: SortedTheme.teal,
           text: text,
         );
 
@@ -90,7 +90,7 @@ class ActivityRow extends StatelessWidget {
         final label = emoji.isEmpty ? name : '$emoji $name';
         return (
           icon: Icons.group_add_outlined,
-          tint: TabbyTheme.amber,
+          tint: SortedTheme.amber,
           text: '$actor created $label',
         );
 
@@ -99,7 +99,7 @@ class ActivityRow extends StatelessWidget {
         final who = pid == null ? 'someone' : _personLabel(pid);
         return (
           icon: Icons.person_add_outlined,
-          tint: TabbyTheme.teal,
+          tint: SortedTheme.teal,
           text: '$actor added $who$groupSuffix',
         );
 
@@ -110,14 +110,14 @@ class ActivityRow extends StatelessWidget {
           // Actor left on their own. "You left" / "Aman left".
           return (
             icon: Icons.logout,
-            tint: TabbyTheme.clay,
+            tint: SortedTheme.clay,
             text: '$actor left$groupSuffix',
           );
         }
         final who = pid == null ? 'someone' : _personLabel(pid);
         return (
           icon: Icons.person_remove_outlined,
-          tint: TabbyTheme.clay,
+          tint: SortedTheme.clay,
           text: '$actor removed $who$groupSuffix',
         );
     }
@@ -186,14 +186,14 @@ class ActivityRow extends StatelessWidget {
                     Text(
                       relativeTime(event.createdAt),
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 12,),
+                          color: SortedTheme.dimOf(context), fontSize: 12,),
                     ),
                   ],
                 ),
               ),
               if (tap != null)
                 Icon(Icons.chevron_right,
-                    size: 18, color: TabbyTheme.dimOf(context),),
+                    size: 18, color: SortedTheme.dimOf(context),),
             ],
           ),
         ),

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../data/balance_providers.dart';
 import '../../../data/supabase_client.dart';
-import '../../theme/tabby_theme.dart';
+import '../../theme/sorted_theme.dart';
 import '../../widgets/settle_sheet.dart';
 
 /// Cross-group rollup of who owes whom, from the current user's perspective.
@@ -116,7 +116,7 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: TabbyTheme.amber.withValues(alpha: 0.14),
+        color: SortedTheme.amber.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -124,7 +124,7 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Text('Your net position',
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context),
+                  color: SortedTheme.dimOf(context),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,),),
           const SizedBox(height: 6),
@@ -133,10 +133,10 @@ class _SummaryCard extends StatelessWidget {
             style:
                 Theme.of(context).textTheme.displayMedium?.copyWith(
                       color: netZero
-                          ? TabbyTheme.dimOf(context)
+                          ? SortedTheme.dimOf(context)
                           : (netPositive
-                              ? TabbyTheme.teal
-                              : TabbyTheme.clay),
+                              ? SortedTheme.teal
+                              : SortedTheme.clay),
                       fontWeight: FontWeight.w600,
                     ),
           ),
@@ -144,7 +144,7 @@ class _SummaryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               netPositive ? 'in your favor' : "you're behind",
-              style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 13),
+              style: TextStyle(color: SortedTheme.dimOf(context), fontSize: 13),
             ),
           ],
           const SizedBox(height: 16),
@@ -189,16 +189,16 @@ class _SummaryStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: TabbyTheme.cardFillOf(context),
+        color: SortedTheme.cardFillOf(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: TabbyTheme.borderOf(context)),
+        border: Border.all(color: SortedTheme.borderOf(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context), fontSize: 12,),),
+                  color: SortedTheme.dimOf(context), fontSize: 12,),),
           const SizedBox(height: 2),
           Text(
             amount.toString(),
@@ -231,11 +231,11 @@ class _PeerCard extends ConsumerWidget {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: TabbyTheme.amber.withValues(alpha: 0.4),
+                backgroundColor: SortedTheme.amber.withValues(alpha: 0.4),
                 child: Text(
                   initial,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, color: TabbyTheme.teal,),
+                      fontWeight: FontWeight.w600, color: SortedTheme.teal,),
                 ),
               ),
               const SizedBox(width: 12),
@@ -251,8 +251,8 @@ class _PeerCard extends ConsumerWidget {
                       peerOwes ? 'owes you' : 'you owe',
                       style: TextStyle(
                         color: peerOwes
-                            ? TabbyTheme.teal
-                            : TabbyTheme.clay,
+                            ? SortedTheme.teal
+                            : SortedTheme.clay,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -266,7 +266,7 @@ class _PeerCard extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
               Icon(Icons.chevron_right,
-                  size: 18, color: TabbyTheme.dimOf(context),),
+                  size: 18, color: SortedTheme.dimOf(context),),
             ],
           ),
         ),
@@ -313,7 +313,7 @@ class _PeerBreakdownSheet extends ConsumerWidget {
               height: 4,
               margin: const EdgeInsets.only(bottom: 14),
               decoration: BoxDecoration(
-                color: TabbyTheme.mist,
+                color: SortedTheme.mist,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -334,8 +334,8 @@ class _PeerBreakdownSheet extends ConsumerWidget {
                       balance.peerOwesMe ? 'owes you' : 'you owe',
                       style: TextStyle(
                         color: balance.peerOwesMe
-                            ? TabbyTheme.teal
-                            : TabbyTheme.clay,
+                            ? SortedTheme.teal
+                            : SortedTheme.clay,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -353,7 +353,7 @@ class _PeerBreakdownSheet extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             'Broken down by group. Tap a row to open it, or use the handshake icon to settle.',
-            style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 12),
+            style: TextStyle(color: SortedTheme.dimOf(context), fontSize: 12),
           ),
           const SizedBox(height: 14),
           optionsAsync.when(
@@ -364,7 +364,7 @@ class _PeerBreakdownSheet extends ConsumerWidget {
             error: (e, _) => Padding(
               padding: const EdgeInsets.all(12),
               child: Text("Couldn't load groups: $e",
-                  style: const TextStyle(color: TabbyTheme.clay),),
+                  style: const TextStyle(color: SortedTheme.clay),),
             ),
             data: (options) {
               if (options.isEmpty) {
@@ -375,7 +375,7 @@ class _PeerBreakdownSheet extends ConsumerWidget {
                     'Their debt is routed through someone else by the simplifier — '
                     'settle that link from the group page first.',
                     style: TextStyle(
-                        color: TabbyTheme.dimOf(context), fontSize: 13,),
+                        color: SortedTheme.dimOf(context), fontSize: 13,),
                   ),
                 );
               }
@@ -437,7 +437,7 @@ class _BreakdownRow extends ConsumerWidget {
                 height: 36,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: TabbyTheme.amber.withValues(alpha: 0.2),
+                  color: SortedTheme.amber.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(option.group.emoji,
@@ -458,8 +458,8 @@ class _BreakdownRow extends ConsumerWidget {
                           : 'you owe $peerName',
                       style: TextStyle(
                         color: peerOwesMeHere
-                            ? TabbyTheme.teal
-                            : TabbyTheme.clay,
+                            ? SortedTheme.teal
+                            : SortedTheme.clay,
                         fontSize: 12,
                       ),
                     ),
@@ -475,7 +475,7 @@ class _BreakdownRow extends ConsumerWidget {
               IconButton(
                 tooltip: 'Settle this debt',
                 icon: const Icon(Icons.handshake_outlined, size: 20),
-                color: TabbyTheme.dimOf(context),
+                color: SortedTheme.dimOf(context),
                 onPressed: () => _openSettle(context, ref),
               ),
             ],
@@ -525,12 +525,12 @@ class _EmptyState extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: TabbyTheme.amber.withValues(alpha: 0.15),
+                color: SortedTheme.amber.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
               child: const Icon(Icons.balance,
-                  size: 36, color: TabbyTheme.amber,),
+                  size: 36, color: SortedTheme.amber,),
             ),
             const SizedBox(height: 20),
             Text(title,
@@ -543,7 +543,7 @@ class _EmptyState extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: TabbyTheme.dimOf(context)),
+                  ?.copyWith(color: SortedTheme.dimOf(context)),
             ),
           ],
         ),

@@ -1,15 +1,15 @@
-# Tabby
+# Sorted
 
 A clean, original bill-splitting app for Android and iOS. Built with **Flutter + Supabase**.
 
-> **Bundle ID:** `com.tabby.app`  
+> **Bundle ID:** `com.sorted.app`  
 > **Status:** Pre-production — all core features shipped, pending store submission.
 
 ---
 
 ## What it does
 
-Tabby lets a group of people track shared expenses and settle up cleanly.
+Sorted lets a group of people track shared expenses and settle up cleanly.
 
 | Feature | Detail |
 |---------|--------|
@@ -64,7 +64,7 @@ lib/
 │   ├── profiles_repository.dart
 │   └── balance_providers.dart
 └── ui/
-    ├── theme/tabby_theme.dart — light + dark themes, semantic colour helpers
+    ├── theme/sorted_theme.dart — light / grey / dark themes, semantic colour helpers
     ├── screens/
     │   ├── auth_screen.dart
     │   ├── add_expense_screen.dart

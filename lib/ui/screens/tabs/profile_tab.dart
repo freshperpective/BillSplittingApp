@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models.dart';
 import '../../../data/profiles_repository.dart';
 import '../../../data/supabase_client.dart';
-import '../../theme/tabby_theme.dart';
+import '../../../data/theme_provider.dart';
+import '../../theme/sorted_theme.dart';
 
 /// "Me" tab — shows the signed-in user's profile and lets them edit
 /// display name and default currency. Avatar uploads land here once
@@ -65,11 +66,11 @@ class _ProfileBody extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: TabbyTheme.amber.withValues(alpha: 0.4),
+                  backgroundColor: SortedTheme.amber.withValues(alpha: 0.4),
                   child: Text(
                     initial,
                     style: const TextStyle(
-                      color: TabbyTheme.teal,
+                      color: SortedTheme.teal,
                       fontWeight: FontWeight.w600,
                       fontSize: 22,
                     ),
@@ -86,7 +87,7 @@ class _ProfileBody extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Text(email,
                           style: TextStyle(
-                              color: TabbyTheme.dimOf(context), fontSize: 12,),),
+                              color: SortedTheme.dimOf(context), fontSize: 12,),),
                     ],
                   ),
                 ),
@@ -109,6 +110,7 @@ class _ProfileBody extends ConsumerWidget {
           subtitle: currency,
           onTap: () => _editCurrency(context, ref, current: currency),
         ),
+        _ThemeTile(onTap: () => _pickTheme(context, ref)),
 
         const SizedBox(height: 24),
         TextButton.icon(
@@ -117,9 +119,9 @@ class _ProfileBody extends ConsumerWidget {
             // myProfileProvider re-evaluates on auth change, so no
             // explicit invalidate needed here.
           },
-          icon: const Icon(Icons.logout, color: TabbyTheme.clay),
+          icon: const Icon(Icons.logout, color: SortedTheme.clay),
           label: const Text('Sign out',
-              style: TextStyle(color: TabbyTheme.clay),),
+              style: TextStyle(color: SortedTheme.clay),),
         ),
       ],
     );
@@ -144,7 +146,7 @@ class _ProfileBody extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 'What other members see next to your expenses.',
-                style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 13),
+                style: TextStyle(color: SortedTheme.dimOf(context), fontSize: 13),
               ),
               const SizedBox(height: 14),
               TextField(
@@ -161,7 +163,7 @@ class _ProfileBody extends ConsumerWidget {
                 onPressed: () =>
                     Navigator.pop(ctx, controller.text.trim()),
                 style: FilledButton.styleFrom(
-                  backgroundColor: TabbyTheme.teal,
+                  backgroundColor: SortedTheme.teal,
                   minimumSize: const Size.fromHeight(48),
                 ),
                 child: const Text('Save'),
@@ -200,7 +202,7 @@ class _ProfileBody extends ConsumerWidget {
                     const Padding(
                       padding: EdgeInsets.only(right: 8),
                       child: Icon(Icons.check,
-                          size: 18, color: TabbyTheme.teal,),
+                          size: 18, color: SortedTheme.teal,),
                     )
                   else
                     const SizedBox(width: 26),
@@ -224,6 +226,42 @@ class _ProfileBody extends ConsumerWidget {
           .read(profilesRepositoryProvider)
           .updateMine(defaultCurrency: picked);
     });
+  }
+
+  Future<void> _pickTheme(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(themeProvider);
+    final picked = await showDialog<AppTheme>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Theme'),
+        children: [
+          for (final t in AppTheme.values)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, t),
+              child: Row(
+                children: [
+                  if (t == current)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: Icon(Icons.check, size: 18, color: SortedTheme.teal),
+                    )
+                  else
+                    const SizedBox(width: 26),
+                  Text(
+                    t.label,
+                    style: TextStyle(
+                      fontWeight:
+                          t == current ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (picked == null || picked == current) return;
+    await ref.read(themeProvider.notifier).set(picked);
   }
 
   /// Shared save flow: run the update, invalidate, surface either a
@@ -257,6 +295,23 @@ class _ProfileBody extends ConsumerWidget {
   }
 }
 
+class _ThemeTile extends ConsumerWidget {
+  const _ThemeTile({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(themeProvider);
+    return _SettingsTile(
+      icon: Icons.palette_outlined,
+      title: 'Theme',
+      subtitle: current.label,
+      onTap: onTap,
+    );
+  }
+}
+
 class _SettingsTile extends StatelessWidget {
   const _SettingsTile({
     required this.icon,
@@ -275,10 +330,10 @@ class _SettingsTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: Icon(icon, color: TabbyTheme.teal),
+        leading: Icon(icon, color: SortedTheme.teal),
         title: Text(title),
         subtitle: subtitle == null ? null : Text(subtitle!),
-        trailing: Icon(Icons.chevron_right, color: TabbyTheme.dimOf(context)),
+        trailing: Icon(Icons.chevron_right, color: SortedTheme.dimOf(context)),
         onTap: onTap,
       ),
     );

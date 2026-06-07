@@ -1,4 +1,4 @@
-# Tabby — Project Status
+# Sorted — Project Status
 
 *Last updated 2026-05-25. Keep this file current: update it in the same commit as the feature it describes.*
 
@@ -72,7 +72,7 @@ Private `receipts` Storage bucket + RLS (migration 0009). `ReceiptsRepository` (
 | ~~**`.gitattributes` for CRLF**~~ ✅ | `* text=auto` + `*.dart/sql/yaml/json/md text eol=lf`; platform dirs marked binary. |
 | ~~**App icon**~~ ✅ | Geometric cat face (white head + ears, three amber tabby/ledger stripes, teal bg). Generated via `test/gen_icon_test.dart` → `assets/icon/icon.png`; `flutter_launcher_icons` emits all Android mipmap densities + adaptive icon + iOS `AppIcon.appiconset`. |
 | ~~**Launch / splash screen**~~ ✅ | `flutter_native_splash` generates warm-paper (#FBFAF6) / dark (#11151A) backgrounds for Android + iOS. |
-| **Bundle IDs** | Set `com.tabby.app` (or chosen ID) in `android/app/build.gradle` and Xcode; must match what's registered in App Store Connect / Play Console. |
+| ~~**Bundle IDs**~~ ✅ | `com.sorted.app` set in `android/app/build.gradle.kts`, `ios/Runner.xcodeproj`, `macos/Runner.xcodeproj`, `linux/CMakeLists.txt`, `windows/CMakeLists.txt`; must match what's registered in App Store Connect / Play Console. |
 
 ---
 
@@ -82,7 +82,7 @@ These only pay off once there's an install base.
 
 | Item | Notes |
 |------|-------|
-| **Invite system** | Email invite via Edge Function + Resend; deep link lands new user in the group after sign-up; optional contact-list scan to surface friends already on Tabby. Needs Universal Links (iOS) + App Links (Android) registered against the production domain. |
+| **Invite system** | Email invite via Edge Function + Resend; deep link lands new user in the group after sign-up; optional contact-list scan to surface friends already on Sorted. Needs Universal Links (iOS) + App Links (Android) registered against the production domain. |
 | **Live FX rates** | Scheduled Edge Function fetches ECB / Open Exchange Rates daily, writes to a `fx_rates` table; `add_expense_screen` reads the latest rate at entry time instead of a static table. |
 | **OCR for receipts** | On photo attach, call a Vision API (Google ML Kit on device, or a Cloud Vision Edge Function) to pre-fill amount + description. Pure UX sugar — skip if the static receipt attach ships and users are happy. |
 | **Push notifications** | Supabase Database Webhooks → Edge Function → APNs / FCM when a new expense or settlement is added to a group you're in. Requires APNs key in App Store Connect + FCM key in Play Console. |
@@ -91,4 +91,4 @@ These only pay off once there's an install base.
 | **CSV export** | Dump a group's expenses as CSV for the "I want a spreadsheet" power user. Single endpoint, low effort, high goodwill. |
 | **Recurring expenses** | Scheduled entries (monthly rent, subscriptions). Needs a `recurrence_rule` column + a cron-like Edge Function or client-side scheduler. |
 | **Search** | Full-text search over expense descriptions. Postgres `tsvector` + GIN index on `expenses.description`; expose via RPC. |
-| ~~**Dark theme polish**~~ ✅ | `TabbyTheme.dark()` completed (`inputDecorationTheme`, `scrolledUnderElevation`); three semantic helpers (`dimOf`, `cardFillOf`, `borderOf`) replace hardcoded `dim`/`Colors.white`/`mist` references across 12 UI files so all colours adapt to light/dark automatically. |
+| ~~**Dark theme polish**~~ ✅ | `SortedTheme.dark()` completed (`inputDecorationTheme`, `scrolledUnderElevation`); three semantic helpers (`dimOf`, `cardFillOf`, `borderOf`) replace hardcoded `dim`/`Colors.white`/`mist` references across 12 UI files so all colours adapt to light/grey/dark automatically. Theme switcher (Light / Grey / Dark / System) added to Profile tab, persisted via `shared_preferences`. |

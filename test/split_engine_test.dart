@@ -1,7 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tabby/core/models.dart';
-import 'package:tabby/core/split_engine.dart';
+import 'package:sorted/core/models.dart';
+import 'package:sorted/core/split_engine.dart';
 
 Decimal d(String s) => Decimal.parse(s);
 

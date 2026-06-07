@@ -1,4 +1,4 @@
-# Contributing to Tabby
+# Contributing to Sorted
 
 ## Dev environment
 
@@ -32,7 +32,7 @@ For VS Code, add a `.vscode/launch.json`:
 {
   "configurations": [
     {
-      "name": "Tabby (debug)",
+      "name": "Sorted (debug)",
       "request": "launch",
       "type": "dart",
       "args": [

@@ -11,7 +11,7 @@ import '../../data/balance_providers.dart';
 import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
 import '../../data/supabase_client.dart';
-import '../theme/tabby_theme.dart';
+import '../theme/sorted_theme.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
   /// Both create and edit. When [expenseId] is provided the screen
@@ -429,10 +429,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     label: Text(_labelFor(mode)),
                     selected: selected,
                     onSelected: (_) => _onModeChange(mode, members),
-                    selectedColor: TabbyTheme.teal.withValues(alpha: 0.18),
+                    selectedColor: SortedTheme.teal.withValues(alpha: 0.18),
                     labelStyle: TextStyle(
                       color:
-                          selected ? TabbyTheme.teal : TabbyTheme.dimOf(context),
+                          selected ? SortedTheme.teal : SortedTheme.dimOf(context),
                       fontWeight: selected
                           ? FontWeight.w600
                           : FontWeight.w400,
@@ -457,7 +457,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               if (_error != null) ...[
                 const SizedBox(height: 12),
                 Text(_error!,
-                    style: const TextStyle(color: TabbyTheme.clay),),
+                    style: const TextStyle(color: SortedTheme.clay),),
               ],
             ],
           ),
@@ -468,7 +468,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           child: FilledButton(
             onPressed: (_saving || !canSave) ? null : () => _save(members),
             style: FilledButton.styleFrom(
-              backgroundColor: TabbyTheme.teal,
+              backgroundColor: SortedTheme.teal,
               minimumSize: const Size.fromHeight(52),
             ),
             child: _saving
@@ -631,7 +631,7 @@ class _MemberInputList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       decoration: BoxDecoration(
-        color: TabbyTheme.amber.withValues(alpha: 0.10),
+        color: SortedTheme.amber.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -648,7 +648,7 @@ class _MemberInputList extends StatelessWidget {
                 Text(
                   preview,
                   style: TextStyle(
-                      color: TabbyTheme.dimOf(context), fontSize: 12,),
+                      color: SortedTheme.dimOf(context), fontSize: 12,),
                 ),
             ],
           ),
@@ -657,7 +657,7 @@ class _MemberInputList extends StatelessWidget {
               padding: const EdgeInsets.only(top: 2, bottom: 2),
               child: Text(
                 'Type one to anchor it; the rest re-balance.',
-                style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 11),
+                style: TextStyle(color: SortedTheme.dimOf(context), fontSize: 11),
               ),
             ),
           const SizedBox(height: 4),
@@ -671,7 +671,7 @@ class _MemberInputList extends StatelessWidget {
                     const Padding(
                       padding: EdgeInsets.only(right: 6),
                       child: Icon(Icons.push_pin,
-                          size: 14, color: TabbyTheme.teal,),
+                          size: 14, color: SortedTheme.teal,),
                     ),
                   Expanded(
                     child: Text(
@@ -685,7 +685,7 @@ class _MemberInputList extends StatelessWidget {
                   ),
                   if (isEqual)
                     const Icon(Icons.check,
-                        size: 18, color: TabbyTheme.teal,)
+                        size: 18, color: SortedTheme.teal,)
                   else
                     SizedBox(
                       width: 130,
@@ -704,7 +704,7 @@ class _MemberInputList extends StatelessWidget {
                           filled: true,
                           // Use the theme's card-fill so these inputs
                           // adapt to dark mode (overrides global fillColor).
-                          fillColor: TabbyTheme.cardFillOf(context),
+                          fillColor: SortedTheme.cardFillOf(context),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide.none,
@@ -732,18 +732,18 @@ class _ValidationBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: TabbyTheme.clay.withValues(alpha: 0.12),
+        color: SortedTheme.clay.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
           const Icon(Icons.error_outline,
-              color: TabbyTheme.clay, size: 18,),
+              color: SortedTheme.clay, size: 18,),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: TabbyTheme.clay, fontSize: 13),
+              style: const TextStyle(color: SortedTheme.clay, fontSize: 13),
             ),
           ),
         ],
@@ -768,7 +768,7 @@ class _ArchivedNotice extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.archive_outlined,
-                size: 48, color: TabbyTheme.dimOf(context),),
+                size: 48, color: SortedTheme.dimOf(context),),
             const SizedBox(height: 12),
             Text('This group is archived.',
                 style: Theme.of(context).textTheme.headlineSmall,),
@@ -776,13 +776,13 @@ class _ArchivedNotice extends StatelessWidget {
             Text(
               'Unarchive it from the group page to add new expenses.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dimOf(context)),
+              style: TextStyle(color: SortedTheme.dimOf(context)),
             ),
             const SizedBox(height: 18),
             FilledButton(
               onPressed: () => context.go('/group/$groupId'),
               style: FilledButton.styleFrom(
-                backgroundColor: TabbyTheme.teal,
+                backgroundColor: SortedTheme.teal,
               ),
               child: const Text('Back to group'),
             ),

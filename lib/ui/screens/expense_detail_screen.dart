@@ -13,7 +13,7 @@ import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
 import '../../data/receipts_repository.dart';
 import '../../data/supabase_client.dart';
-import '../theme/tabby_theme.dart';
+import '../theme/sorted_theme.dart';
 
 class ExpenseDetailScreen extends ConsumerWidget {
   const ExpenseDetailScreen({
@@ -116,10 +116,10 @@ class _ExpenseActionsMenu extends ConsumerWidget {
         PopupMenuItem(
           value: 'delete',
           child: Row(children: [
-            Icon(Icons.delete_outline, size: 18, color: TabbyTheme.clay),
+            Icon(Icons.delete_outline, size: 18, color: SortedTheme.clay),
             SizedBox(width: 12),
             Text('Delete expense',
-                style: TextStyle(color: TabbyTheme.clay),),
+                style: TextStyle(color: SortedTheme.clay),),
           ],),
         ),
       ],
@@ -142,7 +142,7 @@ class _ExpenseActionsMenu extends ConsumerWidget {
               child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
+            style: FilledButton.styleFrom(backgroundColor: SortedTheme.clay),
             child: const Text('Delete'),
           ),
         ],
@@ -203,7 +203,7 @@ class _ExpenseDetailBody extends StatelessWidget {
         : '${payerShares.length} people';
     final dateFmt = DateFormat.yMMMMd();
     // createdAt vs paidAt are different things: paidAt is the date of the
-    // expense itself, createdAt is when it was logged into Tabby. Both are
+    // expense itself, createdAt is when it was logged into Sorted. Both are
     // useful in audits ("was this entered late?") so we show both.
     final createdFmt = DateFormat.yMMMd().add_jm();
 
@@ -214,7 +214,7 @@ class _ExpenseDetailBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withValues(alpha: 0.14),
+            color: SortedTheme.amber.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -228,7 +228,7 @@ class _ExpenseDetailBody extends StatelessWidget {
               Text(
                 '${expense.currency} ${expense.amount}',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: TabbyTheme.teal,
+                      color: SortedTheme.teal,
                       fontWeight: FontWeight.w600,
                     ),
               ),
@@ -236,32 +236,32 @@ class _ExpenseDetailBody extends StatelessWidget {
               Row(
                 children: [
                   Icon(Icons.person_outline,
-                      size: 16, color: TabbyTheme.dimOf(context),),
+                      size: 16, color: SortedTheme.dimOf(context),),
                   const SizedBox(width: 4),
                   Text('Paid by $payerLabel',
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 13,),),
+                          color: SortedTheme.dimOf(context), fontSize: 13,),),
                   const SizedBox(width: 16),
                   Icon(Icons.event,
-                      size: 16, color: TabbyTheme.dimOf(context),),
+                      size: 16, color: SortedTheme.dimOf(context),),
                   const SizedBox(width: 4),
                   Text(dateFmt.format(expense.paidAt),
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 13,),),
+                          color: SortedTheme.dimOf(context), fontSize: 13,),),
                 ],
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
                   Icon(Icons.schedule_outlined,
-                      size: 14, color: TabbyTheme.dimOf(context),),
+                      size: 14, color: SortedTheme.dimOf(context),),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'Added ${createdFmt.format(expense.createdAt.toLocal())} '
                       'by ${_name(expense.createdBy)}',
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 12,),
+                          color: SortedTheme.dimOf(context), fontSize: 12,),
                     ),
                   ),
                 ],
@@ -289,7 +289,7 @@ class _ExpenseDetailBody extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: TabbyTheme.amber.withValues(alpha: 0.4),
+                  backgroundColor: SortedTheme.amber.withValues(alpha: 0.4),
                   child: Text(
                     _name(share.profileId).isNotEmpty
                         ? _name(share.profileId)
@@ -298,7 +298,7 @@ class _ExpenseDetailBody extends StatelessWidget {
                         : '?',
                     style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: TabbyTheme.teal,),
+                        color: SortedTheme.teal,),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -313,7 +313,7 @@ class _ExpenseDetailBody extends StatelessWidget {
                       Text(
                         'Owes ${expense.currency} ${share.owedShare}',
                         style: TextStyle(
-                            color: TabbyTheme.dimOf(context), fontSize: 12,),
+                            color: SortedTheme.dimOf(context), fontSize: 12,),
                       ),
                     ],
                   ),
@@ -326,10 +326,10 @@ class _ExpenseDetailBody extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: isZero
-                        ? TabbyTheme.dim
+                        ? SortedTheme.dim
                         : (isPositive
-                            ? TabbyTheme.teal
-                            : TabbyTheme.clay),
+                            ? SortedTheme.teal
+                            : SortedTheme.clay),
                   ),
                 ),
               ],
@@ -418,7 +418,7 @@ class _ReceiptStripState extends ConsumerState<_ReceiptStrip> {
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
-                backgroundColor: TabbyTheme.clay,),
+                backgroundColor: SortedTheme.clay,),
             child: const Text('Remove'),
           ),
         ],
@@ -551,7 +551,7 @@ class _ReceiptStripState extends ConsumerState<_ReceiptStrip> {
               Text(
                 _uploadError!,
                 style: const TextStyle(
-                    color: TabbyTheme.clay, fontSize: 12,),
+                    color: SortedTheme.clay, fontSize: 12,),
               ),
             ],
           ],
@@ -594,7 +594,7 @@ class _ReceiptThumbnail extends StatelessWidget {
                   return Container(
                     width: 80,
                     height: 80,
-                    color: TabbyTheme.amber.withValues(alpha: 0.15),
+                    color: SortedTheme.amber.withValues(alpha: 0.15),
                     child: const Center(
                       child: SizedBox(
                         width: 20,
@@ -608,12 +608,12 @@ class _ReceiptThumbnail extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: TabbyTheme.amber.withValues(alpha: 0.15),
+                    color: SortedTheme.amber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     Icons.broken_image_outlined,
-                    color: TabbyTheme.dimOf(context),
+                    color: SortedTheme.dimOf(context),
                   ),
                 ),
               ),
@@ -661,10 +661,10 @@ class _AddPhotoButton extends StatelessWidget {
         width: 80,
         height: 80,
         decoration: BoxDecoration(
-          color: TabbyTheme.amber.withValues(alpha: 0.12),
+          color: SortedTheme.amber.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: TabbyTheme.amber.withValues(alpha: 0.40),
+            color: SortedTheme.amber.withValues(alpha: 0.40),
           ),
         ),
         child: Column(
@@ -672,7 +672,7 @@ class _AddPhotoButton extends StatelessWidget {
           children: [
             Icon(
               Icons.add_photo_alternate_outlined,
-              color: uploading ? TabbyTheme.dimOf(context) : TabbyTheme.amber,
+              color: uploading ? SortedTheme.dimOf(context) : SortedTheme.amber,
               size: 28,
             ),
             const SizedBox(height: 4),
@@ -680,7 +680,7 @@ class _AddPhotoButton extends StatelessWidget {
               'Add',
               style: TextStyle(
                 fontSize: 11,
-                color: uploading ? TabbyTheme.dimOf(context) : TabbyTheme.amber,
+                color: uploading ? SortedTheme.dimOf(context) : SortedTheme.amber,
               ),
             ),
           ],
@@ -702,7 +702,7 @@ class _MissingExpense extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.help_outline,
-                size: 48, color: TabbyTheme.dimOf(context),),
+                size: 48, color: SortedTheme.dimOf(context),),
             const SizedBox(height: 12),
             Text("Couldn't find that expense.",
                 style: Theme.of(context).textTheme.titleMedium,),
@@ -710,7 +710,7 @@ class _MissingExpense extends StatelessWidget {
             Text(
               'It may have been deleted. Go back to refresh the list.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dimOf(context)),
+              style: TextStyle(color: SortedTheme.dimOf(context)),
             ),
           ],
         ),

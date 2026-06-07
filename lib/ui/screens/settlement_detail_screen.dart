@@ -9,7 +9,7 @@ import '../../data/balance_providers.dart';
 import '../../data/groups_repository.dart';
 import '../../data/settlements_repository.dart';
 import '../../data/supabase_client.dart';
-import '../theme/tabby_theme.dart';
+import '../theme/sorted_theme.dart';
 
 /// Detail view for a single settlement. Surfaced from activity rows of
 /// kind `settle`. Either party of the payment can hard-delete it; the
@@ -100,7 +100,7 @@ class _SettlementBody extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withValues(alpha: 0.14),
+            color: SortedTheme.amber.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -112,7 +112,7 @@ class _SettlementBody extends ConsumerWidget {
               Text(
                 '${settlement.currency} ${settlement.amount}',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: TabbyTheme.teal,
+                      color: SortedTheme.teal,
                       fontWeight: FontWeight.w600,
                     ),
               ),
@@ -120,13 +120,13 @@ class _SettlementBody extends ConsumerWidget {
               Row(
                 children: [
                   Icon(Icons.schedule_outlined,
-                      size: 14, color: TabbyTheme.dimOf(context),),
+                      size: 14, color: SortedTheme.dimOf(context),),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'Logged ${dateFmt.format(settlement.createdAt.toLocal())}',
                       style: TextStyle(
-                          color: TabbyTheme.dimOf(context), fontSize: 12,),
+                          color: SortedTheme.dimOf(context), fontSize: 12,),
                     ),
                   ),
                 ],
@@ -137,9 +137,9 @@ class _SettlementBody extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 10,),
                   decoration: BoxDecoration(
-                    color: TabbyTheme.cardFillOf(context),
+                    color: SortedTheme.cardFillOf(context),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: TabbyTheme.borderOf(context)),
+                    border: Border.all(color: SortedTheme.borderOf(context)),
                   ),
                   child: Text(settlement.note!,
                       style: const TextStyle(fontSize: 13),),
@@ -152,11 +152,11 @@ class _SettlementBody extends ConsumerWidget {
         if (_canDelete)
           OutlinedButton.icon(
             onPressed: () => _confirmDelete(context, ref),
-            icon: const Icon(Icons.delete_outline, color: TabbyTheme.clay),
+            icon: const Icon(Icons.delete_outline, color: SortedTheme.clay),
             label: const Text('Delete payment',
-                style: TextStyle(color: TabbyTheme.clay),),
+                style: TextStyle(color: SortedTheme.clay),),
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: TabbyTheme.clay),
+              side: const BorderSide(color: SortedTheme.clay),
               minimumSize: const Size.fromHeight(48),
             ),
           )
@@ -165,7 +165,7 @@ class _SettlementBody extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               'Only the people involved in this payment can remove it.',
-              style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 12),
+              style: TextStyle(color: SortedTheme.dimOf(context), fontSize: 12),
             ),
           ),
       ],
@@ -187,7 +187,7 @@ class _SettlementBody extends ConsumerWidget {
               child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
+            style: FilledButton.styleFrom(backgroundColor: SortedTheme.clay),
             child: const Text('Delete'),
           ),
         ],
@@ -232,7 +232,7 @@ class _MissingSettlement extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.help_outline,
-                size: 48, color: TabbyTheme.dimOf(context),),
+                size: 48, color: SortedTheme.dimOf(context),),
             const SizedBox(height: 12),
             Text("Couldn't find that payment.",
                 style: Theme.of(context).textTheme.titleMedium,),
@@ -240,7 +240,7 @@ class _MissingSettlement extends StatelessWidget {
             Text(
               'It may have been deleted. Go back to refresh.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dimOf(context)),
+              style: TextStyle(color: SortedTheme.dimOf(context)),
             ),
           ],
         ),

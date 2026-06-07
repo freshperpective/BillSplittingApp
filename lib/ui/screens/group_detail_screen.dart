@@ -11,7 +11,7 @@ import '../../data/balance_providers.dart';
 import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
 import '../../data/supabase_client.dart';
-import '../theme/tabby_theme.dart';
+import '../theme/sorted_theme.dart';
 import '../widgets/activity_row.dart';
 import '../widgets/settle_sheet.dart';
 
@@ -169,10 +169,10 @@ class _OwnerMenu extends ConsumerWidget {
         const PopupMenuItem(
           value: 'delete',
           child: Row(children: [
-            Icon(Icons.delete_outline, size: 18, color: TabbyTheme.clay),
+            Icon(Icons.delete_outline, size: 18, color: SortedTheme.clay),
             SizedBox(width: 12),
             Text('Delete group',
-                style: TextStyle(color: TabbyTheme.clay),),
+                style: TextStyle(color: SortedTheme.clay),),
           ],),
         ),
       ],
@@ -202,7 +202,7 @@ class _OwnerMenu extends ConsumerWidget {
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style:
-                FilledButton.styleFrom(backgroundColor: TabbyTheme.teal),
+                FilledButton.styleFrom(backgroundColor: SortedTheme.teal),
             child: Text(archive ? 'Archive' : 'Unarchive'),
           ),
         ],
@@ -284,7 +284,7 @@ class _OwnerMenu extends ConsumerWidget {
                         ? '• ${nameOf(t.from)} owes you ${t.amount}'
                         : '• You owe ${nameOf(t.to)} ${t.amount}',
                     style: const TextStyle(
-                        color: TabbyTheme.clay, fontSize: 13,),
+                        color: SortedTheme.clay, fontSize: 13,),
                   ),
                 ),
             ],
@@ -296,7 +296,7 @@ class _OwnerMenu extends ConsumerWidget {
               child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
+            style: FilledButton.styleFrom(backgroundColor: SortedTheme.clay),
             child: Text(hasOpenDebts ? 'Delete anyway' : 'Delete'),
           ),
         ],
@@ -363,13 +363,13 @@ class _GroupMetaLine extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: 14, color: TabbyTheme.dimOf(context)),
+          Icon(Icons.info_outline, size: 14, color: SortedTheme.dimOf(context)),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               'Created by $creatorLabel · ${dateFmt.format(group.createdAt.toLocal())}',
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context), fontSize: 12,),
+                  color: SortedTheme.dimOf(context), fontSize: 12,),
             ),
           ),
         ],
@@ -390,12 +390,12 @@ class _ArchivedBanner extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.archive_outlined,
-              size: 16, color: TabbyTheme.dimOf(context),),
+              size: 16, color: SortedTheme.dimOf(context),),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Archived — read-only. Unarchive to add new expenses.',
-              style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 13),
+              style: TextStyle(color: SortedTheme.dimOf(context), fontSize: 13),
             ),
           ),
         ],
@@ -451,10 +451,10 @@ class _GroupBalanceStrip extends ConsumerWidget {
 
         // Shared container decoration used by both views.
         BoxDecoration stripDecoration() => BoxDecoration(
-              color: TabbyTheme.amber.withValues(alpha: 0.14),
+              color: SortedTheme.amber.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
               border:
-                  Border.all(color: TabbyTheme.amber.withValues(alpha: 0.35)),
+                  Border.all(color: SortedTheme.amber.withValues(alpha: 0.35)),
             );
 
         // Toggle button shown in the top-right corner of the strip.
@@ -476,7 +476,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                         ? Icons.people_outline
                         : Icons.account_tree_outlined,
                     size: 16,
-                    color: TabbyTheme.dimOf(context),
+                    color: SortedTheme.dimOf(context),
                   ),
                 ),
               ),
@@ -506,7 +506,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                         child: Text(
                           'Your transfers',
                           style: TextStyle(
-                              color: TabbyTheme.dimOf(context), fontSize: 11,),
+                              color: SortedTheme.dimOf(context), fontSize: 11,),
                         ),
                       ),
                       toggleButton(),
@@ -544,8 +544,8 @@ class _GroupBalanceStrip extends ConsumerWidget {
                                 : Icons.north_east,
                             size: 16,
                             color: theyOweMe
-                                ? TabbyTheme.teal
-                                : TabbyTheme.clay,
+                                ? SortedTheme.teal
+                                : SortedTheme.clay,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -561,7 +561,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                           ),
                           const SizedBox(width: 6),
                           Icon(Icons.handshake_outlined,
-                              size: 16, color: TabbyTheme.dimOf(context),),
+                              size: 16, color: SortedTheme.dimOf(context),),
                         ],
                       ),
                     ),
@@ -598,7 +598,7 @@ class _GroupBalanceStrip extends ConsumerWidget {
                       child: Text(
                         'Everyone\'s balance',
                         style: TextStyle(
-                            color: TabbyTheme.dimOf(context), fontSize: 11,),
+                            color: SortedTheme.dimOf(context), fontSize: 11,),
                       ),
                     ),
                     toggleButton(),
@@ -621,8 +621,8 @@ class _GroupBalanceStrip extends ConsumerWidget {
                             : Icons.north_east,
                         size: 16,
                         color: isCreditor
-                            ? TabbyTheme.teal
-                            : TabbyTheme.clay,
+                            ? SortedTheme.teal
+                            : SortedTheme.clay,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -683,20 +683,20 @@ class _GroupBalanceStrip extends ConsumerWidget {
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: TabbyTheme.teal.withValues(alpha: 0.10),
+        color: SortedTheme.teal.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: TabbyTheme.teal.withValues(alpha: 0.30)),
+        border: Border.all(color: SortedTheme.teal.withValues(alpha: 0.30)),
       ),
       child: const Row(
         children: [
           Icon(Icons.check_circle_outline,
-              size: 18, color: TabbyTheme.teal,),
+              size: 18, color: SortedTheme.teal,),
           SizedBox(width: 8),
           Text("You're all settled in this group.",
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: TabbyTheme.teal,),),
+                  color: SortedTheme.teal,),),
         ],
       ),
     );
@@ -754,7 +754,7 @@ class _ExpenseRow extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withValues(alpha: 0.16),
+            color: SortedTheme.amber.withValues(alpha: 0.16),
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
@@ -771,7 +771,7 @@ class _ExpenseRow extends StatelessWidget {
             Text(
               'Paid by $payerLabel · ${expense.currency} ${expense.amount}',
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context), fontSize: 12,),
+                  color: SortedTheme.dimOf(context), fontSize: 12,),
             ),
             const SizedBox(height: 2),
             Text(
@@ -780,14 +780,14 @@ class _ExpenseRow extends StatelessWidget {
               // expense gets entered days after the fact.
               'added ${relativeTime(expense.createdAt)}',
               style: TextStyle(
-                  color: TabbyTheme.dimOf(context), fontSize: 11,),
+                  color: SortedTheme.dimOf(context), fontSize: 11,),
             ),
           ],
         ),
         isThreeLine: true,
         trailing: youAreZero
             ? Text('settled',
-                style: TextStyle(color: TabbyTheme.dimOf(context), fontSize: 12),)
+                style: TextStyle(color: SortedTheme.dimOf(context), fontSize: 12),)
             : Text(
                 '${youArePositive ? '+' : '−'}${expense.currency} ${net.abs()}',
                 style: amountStyle(context, positive: youArePositive),
@@ -882,7 +882,7 @@ class _GroupActivitySheet extends ConsumerWidget {
                     child: Center(
                       child: Text(
                         "Nothing's happened in this group yet.",
-                        style: TextStyle(color: TabbyTheme.dimOf(context)),
+                        style: TextStyle(color: SortedTheme.dimOf(context)),
                       ),
                     ),
                   );
@@ -1017,7 +1017,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                   child: Text(
                     '• ${nameOf(t.from)} → ${nameOf(t.to)} ${t.amount}',
                     style: const TextStyle(
-                        color: TabbyTheme.clay, fontSize: 13,),
+                        color: SortedTheme.clay, fontSize: 13,),
                   ),
                 ),
             ],
@@ -1029,7 +1029,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
               child: const Text('Cancel'),),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: TabbyTheme.clay),
+            style: FilledButton.styleFrom(backgroundColor: SortedTheme.clay),
             child: Text(hasOpen
                 ? (isSelf ? 'Leave anyway' : 'Remove anyway')
                 : (isSelf ? 'Leave' : 'Remove'),),
@@ -1097,7 +1097,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
       final profile = await repo.findProfileByEmail(email);
       if (profile == null) {
         setState(() => _error =
-            'No Tabby account for that email. Ask them to sign up first.',);
+            'No Sorted account for that email. Ask them to sign up first.',);
         return;
       }
 
@@ -1151,7 +1151,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
               child: Text(
                 'This group is archived — adding members is paused.',
                 style: TextStyle(
-                    color: TabbyTheme.dimOf(context), fontSize: 13,),
+                    color: SortedTheme.dimOf(context), fontSize: 13,),
               ),
             ),
           Row(
@@ -1174,7 +1174,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
               FilledButton(
                 onPressed: (_busy || isArchived) ? null : _addByEmail,
                 style: FilledButton.styleFrom(
-                  backgroundColor: TabbyTheme.teal,
+                  backgroundColor: SortedTheme.teal,
                   minimumSize: const Size(80, 48),
                 ),
                 child: _busy
@@ -1191,12 +1191,12 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
           if (_error != null) ...[
             const SizedBox(height: 10),
             Text(_error!,
-                style: const TextStyle(color: TabbyTheme.clay, fontSize: 13),),
+                style: const TextStyle(color: SortedTheme.clay, fontSize: 13),),
           ],
           if (_success != null) ...[
             const SizedBox(height: 10),
             Text(_success!,
-                style: const TextStyle(color: TabbyTheme.teal, fontSize: 13),),
+                style: const TextStyle(color: SortedTheme.teal, fontSize: 13),),
           ],
           const SizedBox(height: 18),
           Text('In this group',
@@ -1208,7 +1208,7 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (e, _) => Text('Could not load members: $e',
-                style: const TextStyle(color: TabbyTheme.clay),),
+                style: const TextStyle(color: SortedTheme.clay),),
             data: (list) {
               // Group.createdBy is the source of truth for the owner in v0.3
               // (we don't support transferring ownership yet). When that
@@ -1232,14 +1232,14 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
-                      backgroundColor: TabbyTheme.amber.withValues(alpha: 0.4),
+                      backgroundColor: SortedTheme.amber.withValues(alpha: 0.4),
                       child: Text(
                         m.displayName.isNotEmpty
                             ? m.displayName.substring(0, 1).toUpperCase()
                             : '?',
                         style: const TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: TabbyTheme.teal,),
+                            color: SortedTheme.teal,),
                       ),
                     ),
                     title: Row(
@@ -1251,13 +1251,13 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2,),
                             decoration: BoxDecoration(
-                              color: TabbyTheme.teal.withValues(alpha: 0.14),
+                              color: SortedTheme.teal.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
                               'owner',
                               style: TextStyle(
-                                  color: TabbyTheme.teal,
+                                  color: SortedTheme.teal,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,),
                             ),
@@ -1267,19 +1267,19 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
                     ),
                     subtitle: Text(m.defaultCurrency,
                         style: TextStyle(
-                            color: TabbyTheme.dimOf(context), fontSize: 12,),),
+                            color: SortedTheme.dimOf(context), fontSize: 12,),),
                     trailing: showLeave
                         ? IconButton(
                             tooltip: 'Leave group',
                             icon: const Icon(Icons.logout,
-                                color: TabbyTheme.clay,),
+                                color: SortedTheme.clay,),
                             onPressed: () => _confirmLeave(),
                           )
                         : showRemove
                             ? IconButton(
                                 tooltip: 'Remove member',
                                 icon: const Icon(Icons.person_remove_outlined,
-                                    color: TabbyTheme.clay,),
+                                    color: SortedTheme.clay,),
                                 onPressed: () =>
                                     _confirmRemove(member: m),
                               )
@@ -1307,7 +1307,7 @@ class _GroupEmpty extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.receipt_long,
-                size: 56, color: TabbyTheme.teal,),
+                size: 56, color: SortedTheme.teal,),
             const SizedBox(height: 16),
             Text('No expenses yet',
                 style: Theme.of(context).textTheme.headlineSmall,),
@@ -1315,7 +1315,7 @@ class _GroupEmpty extends StatelessWidget {
             Text(
               'Tap the button below to add the first one.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dimOf(context)),
+              style: TextStyle(color: SortedTheme.dimOf(context)),
             ),
           ],
         ),

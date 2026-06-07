@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../data/supabase_client.dart';
-import '../theme/tabby_theme.dart';
+import '../theme/sorted_theme.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -71,18 +71,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             children: [
               const SizedBox(height: 40),
               Text(
-                'Tabby',
+                'Sorted',
                 style: GoogleFonts.fraunces(
                   fontSize: 56,
                   fontWeight: FontWeight.w600,
-                  color: TabbyTheme.teal,
+                  color: SortedTheme.teal,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'A friendlier tab to keep.',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: TabbyTheme.dimOf(context),
+                      color: SortedTheme.dimOf(context),
                     ),
               ),
               const SizedBox(height: 56),
@@ -112,7 +112,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               FilledButton(
                 onPressed: _busy ? null : _submit,
                 style: FilledButton.styleFrom(
-                  backgroundColor: TabbyTheme.teal,
+                  backgroundColor: SortedTheme.teal,
                   minimumSize: const Size.fromHeight(52),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -134,8 +134,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 Text(_status!,
                     style: TextStyle(
                         color: _status!.startsWith('Check')
-                            ? TabbyTheme.teal
-                            : TabbyTheme.clay,
+                            ? SortedTheme.teal
+                            : SortedTheme.clay,
                         fontSize: 13,),),
               ],
               const SizedBox(height: 16),
@@ -151,7 +151,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     isSignUp
                         ? 'Have an account? Sign in'
                         : 'New here? Create an account',
-                    style: const TextStyle(color: TabbyTheme.teal),
+                    style: const TextStyle(color: SortedTheme.teal),
                   ),
                 ),
               ),
@@ -162,7 +162,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
-                      ?.copyWith(color: TabbyTheme.dimOf(context)),
+                      ?.copyWith(color: SortedTheme.dimOf(context)),
                 ),
               ),
             ],

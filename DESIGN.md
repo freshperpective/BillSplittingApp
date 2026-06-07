@@ -1,10 +1,10 @@
-# Tabby — Bill Splitting App
+# Sorted — Bill Splitting App
 
 A clean, original group-expense tracker for Android and iOS. Built with Flutter + Supabase. This document is the architectural blueprint; the source code that follows implements it.
 
 ## 1. Why this exists
 
-Splitwise solved the "who paid for what on the trip" problem a decade ago, but its mobile UX has aged: dense list rows, an aggressive paywall around basic features, and ad placements that interrupt the core flow. Tabby keeps the math and rebuilds the experience around three opinions:
+Splitwise solved the "who paid for what on the trip" problem a decade ago, but its mobile UX has aged: dense list rows, an aggressive paywall around basic features, and ad placements that interrupt the core flow. Sorted keeps the math and rebuilds the experience around three opinions:
 
 1. **Adding an expense should feel like sending a message** — three taps, not a form.
 2. **Balances are the headline**, not a sub-screen. The home tab should immediately answer "who do I owe and who owes me?"
@@ -215,7 +215,7 @@ Paid amounts are independent: any subset of participants may have paid any porti
 
 ## 9. Visual language (distinct from Splitwise)
 
-| Token | Tabby | (Splitwise reference — explicitly avoided) |
+| Token | Sorted | (Splitwise reference — explicitly avoided) |
 |-------|-------|---------------------------------------------|
 | Primary | `#0E7C66` (deep teal) | Splitwise green |
 | Accent | `#F4A259` (warm amber) | — |

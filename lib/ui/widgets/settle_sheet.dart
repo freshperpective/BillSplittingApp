@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/activity_repository.dart';
 import '../../data/balance_providers.dart';
 import '../../data/settlements_repository.dart';
-import '../theme/tabby_theme.dart';
+import '../theme/sorted_theme.dart';
 
 /// Bottom sheet for recording a payment between two members of a group.
 ///
@@ -133,23 +133,23 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: TabbyTheme.amber.withValues(alpha: 0.14),
+              color: SortedTheme.amber.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: _personChip(widget.fromName,
-                      label: 'From', accent: TabbyTheme.clay,),
+                      label: 'From', accent: SortedTheme.clay,),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Icon(Icons.arrow_forward,
-                      size: 18, color: TabbyTheme.dimOf(context),),
+                      size: 18, color: SortedTheme.dimOf(context),),
                 ),
                 Expanded(
                   child: _personChip(widget.toName,
-                      label: 'To', accent: TabbyTheme.teal,),
+                      label: 'To', accent: SortedTheme.teal,),
                 ),
               ],
             ),
@@ -164,9 +164,9 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 decoration: BoxDecoration(
-                  border: Border.all(color: TabbyTheme.borderOf(context)),
+                  border: Border.all(color: SortedTheme.borderOf(context)),
                   borderRadius: BorderRadius.circular(12),
-                  color: TabbyTheme.cardFillOf(context),
+                  color: SortedTheme.cardFillOf(context),
                 ),
                 child: Text(widget.currency,
                     style: const TextStyle(fontWeight: FontWeight.w600),),
@@ -198,13 +198,13 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
           if (_error != null) ...[
             const SizedBox(height: 10),
             Text(_error!,
-                style: const TextStyle(color: TabbyTheme.clay, fontSize: 13),),
+                style: const TextStyle(color: SortedTheme.clay, fontSize: 13),),
           ],
           const SizedBox(height: 18),
           FilledButton(
             onPressed: _saving ? null : _save,
             style: FilledButton.styleFrom(
-              backgroundColor: TabbyTheme.teal,
+              backgroundColor: SortedTheme.teal,
               minimumSize: const Size.fromHeight(48),
             ),
             child: _saving
@@ -227,7 +227,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
       children: [
         Text(label,
             style:
-                TextStyle(color: TabbyTheme.dimOf(context), fontSize: 11),),
+                TextStyle(color: SortedTheme.dimOf(context), fontSize: 11),),
         const SizedBox(height: 2),
         Text(
           name,

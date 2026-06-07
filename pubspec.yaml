@@ -1,5 +1,5 @@
-name: tabby
-description: Tabby — a clean, original bill-splitting app for Android and iOS.
+name: sorted
+description: Sorted — a clean, original bill-splitting app for Android and iOS.
 publish_to: "none"
 version: 0.1.0+1
 
@@ -36,6 +36,9 @@ dependencies:
   uuid: ^4.4.0
   collection: ^1.18.0
 
+  # Theme persistence
+  shared_preferences: ^2.3.0
+
   # UI
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10+1
@@ -59,7 +62,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.3
 
 flutter_native_splash:
-  # Warm-paper background matching TabbyTheme.paper (#FBFAF6).
+  # Warm-paper background matching SortedTheme.paper (#FBFAF6).
   color: "#FBFAF6"
   color_dark: "#11151A"
   android: true

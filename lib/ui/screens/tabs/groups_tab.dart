@@ -6,7 +6,7 @@ import '../../../core/fx_rates.dart';
 import '../../../core/models.dart';
 import '../../../data/activity_repository.dart';
 import '../../../data/groups_repository.dart';
-import '../../theme/tabby_theme.dart';
+import '../../theme/sorted_theme.dart';
 
 class GroupsTab extends ConsumerWidget {
   const GroupsTab({super.key});
@@ -57,7 +57,7 @@ class GroupsTab extends ConsumerWidget {
                     child: Text(
                       'No active groups — bring one back from Archived or '
                       'start something new.',
-                      style: TextStyle(color: TabbyTheme.dimOf(context)),
+                      style: TextStyle(color: SortedTheme.dimOf(context)),
                     ),
                   )
                 else
@@ -78,16 +78,16 @@ class GroupsTab extends ConsumerWidget {
                     shape: const Border(),
                     collapsedShape: const Border(),
                     leading: Icon(Icons.archive_outlined,
-                        size: 16, color: TabbyTheme.dimOf(context),),
+                        size: 16, color: SortedTheme.dimOf(context),),
                     title: Text(
                       'Archived (${archived.length})',
                       style: Theme.of(context)
                           .textTheme
                           .titleSmall
-                          ?.copyWith(color: TabbyTheme.dimOf(context)),
+                          ?.copyWith(color: SortedTheme.dimOf(context)),
                     ),
-                    iconColor: TabbyTheme.dimOf(context),
-                    collapsedIconColor: TabbyTheme.dimOf(context),
+                    iconColor: SortedTheme.dimOf(context),
+                    collapsedIconColor: SortedTheme.dimOf(context),
                     children: [
                       for (final g in archived) ...[
                         _GroupCard(group: g, archived: true),
@@ -133,7 +133,7 @@ class _GroupCard extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: TabbyTheme.amber.withValues(alpha: archived ? 0.10 : 0.18),
+            color: SortedTheme.amber.withValues(alpha: archived ? 0.10 : 0.18),
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
@@ -145,26 +145,26 @@ class _GroupCard extends StatelessWidget {
           children: [
             Text(group.defaultCurrency,
                 style: TextStyle(
-                    color: TabbyTheme.dimOf(context), fontSize: 12,),),
+                    color: SortedTheme.dimOf(context), fontSize: 12,),),
             if (archived) ...[
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 6, vertical: 2,),
                 decoration: BoxDecoration(
-                  color: TabbyTheme.mist,
+                  color: SortedTheme.mist,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text('archived',
                     style: TextStyle(
-                        color: TabbyTheme.dimOf(context),
+                        color: SortedTheme.dimOf(context),
                         fontSize: 10,
                         fontWeight: FontWeight.w500,),),
               ),
             ],
           ],
         ),
-        trailing: Icon(Icons.chevron_right, color: TabbyTheme.dimOf(context)),
+        trailing: Icon(Icons.chevron_right, color: SortedTheme.dimOf(context)),
         onTap: () => context.go('/group/${group.id}'),
       ),
     );
@@ -184,7 +184,7 @@ class _NoGroups extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.groups_outlined,
-                size: 56, color: TabbyTheme.teal,),
+                size: 56, color: SortedTheme.teal,),
             const SizedBox(height: 16),
             Text('No groups yet',
                 style: Theme.of(context).textTheme.headlineSmall,),
@@ -192,7 +192,7 @@ class _NoGroups extends StatelessWidget {
             Text(
               'Start a group for the trip, the flat, or the dinner club.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: TabbyTheme.dimOf(context)),
+              style: TextStyle(color: SortedTheme.dimOf(context)),
             ),
           ],
         ),
@@ -286,7 +286,7 @@ class _NewGroupSheetState extends ConsumerState<_NewGroupSheet> {
           FilledButton(
             onPressed: _saving ? null : _save,
             style: FilledButton.styleFrom(
-              backgroundColor: TabbyTheme.teal,
+              backgroundColor: SortedTheme.teal,
               minimumSize: const Size.fromHeight(48),
             ),
             child: _saving

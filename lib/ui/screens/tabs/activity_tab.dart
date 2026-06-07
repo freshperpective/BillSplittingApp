@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/activity_repository.dart';
 import '../../../data/supabase_client.dart';
-import '../../theme/tabby_theme.dart';
+import '../../theme/sorted_theme.dart';
 import '../../widgets/activity_row.dart';
 
 class ActivityTab extends ConsumerWidget {
@@ -72,12 +72,12 @@ class _EmptyState extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: TabbyTheme.amber.withValues(alpha: 0.15),
+                color: SortedTheme.amber.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
               child: const Icon(Icons.timeline,
-                  size: 36, color: TabbyTheme.amber,),
+                  size: 36, color: SortedTheme.amber,),
             ),
             const SizedBox(height: 20),
             Text("Nothing's happened yet.",
@@ -90,7 +90,7 @@ class _EmptyState extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: TabbyTheme.dimOf(context)),
+                  ?.copyWith(color: SortedTheme.dimOf(context)),
             ),
           ],
         ),

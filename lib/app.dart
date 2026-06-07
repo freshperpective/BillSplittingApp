@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'data/theme_provider.dart';
 import 'ui/router.dart';
-import 'ui/theme/tabby_theme.dart';
+import 'ui/theme/sorted_theme.dart';
 
-class TabbyApp extends ConsumerWidget {
-  const TabbyApp({super.key});
+class SortedApp extends ConsumerWidget {
+  const SortedApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final appTheme = ref.watch(themeProvider);
     return MaterialApp.router(
-      title: 'Tabby',
+      title: 'Sorted',
       debugShowCheckedModeBanner: false,
-      theme: TabbyTheme.light(),
-      darkTheme: TabbyTheme.dark(),
-      themeMode: ThemeMode.system,
+      theme: appTheme == AppTheme.grey ? SortedTheme.grey() : SortedTheme.light(),
+      darkTheme: SortedTheme.dark(),
+      themeMode: appTheme.themeMode,
       routerConfig: router,
     );
   }

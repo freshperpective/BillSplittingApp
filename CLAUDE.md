@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Tabby — a cross-platform bill-splitter for Android and iOS (Flutter + Supabase). README.md has the user-facing tour; `DESIGN.md` is the canonical architectural blueprint and is more current than the README for v0.2+ work. Read DESIGN.md before making non-trivial structural changes.
+Sorted — a cross-platform bill-splitter for Android and iOS (Flutter + Supabase). README.md has the user-facing tour; `DESIGN.md` is the canonical architectural blueprint and is more current than the README for v0.2+ work. Read DESIGN.md before making non-trivial structural changes.
 
 **Originality is a hard constraint.** No code, copy, asset, theme, or visual element from Splitwise. The "warm ledger" theme (teal `#0E7C66`, amber `#F4A259`, paper `#FBFAF6`, Inter + Fraunces typography) was chosen specifically to be visually distinct. The math (zero-sum balance reconciliation) is public-domain and freely used.
 

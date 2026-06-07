@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Tabby's "warm ledger" design system.
+/// Sorted's "warm ledger" design system.
 ///
 /// Palette and type are chosen to be visually distinct from Splitwise (no
 /// signature greens, no Open Sans). Numbers use Fraunces tabular figures so
 /// money columns align cleanly in lists.
-class TabbyTheme {
-  TabbyTheme._();
+class SortedTheme {
+  SortedTheme._();
 
   // Brand palette
   static const Color teal = Color(0xFF0E7C66);
@@ -18,6 +18,11 @@ class TabbyTheme {
   static const Color ink = Color(0xFF11151A);
   static const Color mist = Color(0xFFE9E5DC);
   static const Color dim = Color(0xFF6B6F75);
+
+  // Grey theme palette
+  static const Color greyScaffold = Color(0xFFF0F0F0);
+  static const Color greyCard = Color(0xFFFFFFFF);
+  static const Color greyBorder = Color(0xFFDEDEDE);
 
   static ThemeData light() {
     final base = ThemeData.light(useMaterial3: true);
@@ -85,12 +90,79 @@ class TabbyTheme {
     );
   }
 
+  static ThemeData grey() {
+    final base = ThemeData.light(useMaterial3: true);
+    final scheme = ColorScheme.fromSeed(
+      seedColor: teal,
+      brightness: Brightness.light,
+      primary: teal,
+      secondary: amber,
+      surface: greyScaffold,
+      error: clay,
+    );
+
+    return base.copyWith(
+      colorScheme: scheme,
+      scaffoldBackgroundColor: greyScaffold,
+      textTheme: _buildTextTheme(base.textTheme, ink),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: greyScaffold,
+        foregroundColor: ink,
+        elevation: 0,
+        centerTitle: false,
+        scrolledUnderElevation: 0,
+      ),
+      cardTheme: CardThemeData(
+        color: greyCard,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: greyBorder),
+        ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: teal,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        shape: StadiumBorder(),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: greyCard,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: greyBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: greyBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: teal, width: 1.5),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: greyScaffold,
+        selectedItemColor: teal,
+        unselectedItemColor: dim,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+      ),
+      dividerTheme:
+          const DividerThemeData(color: greyBorder, thickness: 1, space: 1),
+    );
+  }
+
   static ThemeData dark() {
     final base = ThemeData.dark(useMaterial3: true);
     const darkSurface = Color(0xFF11151A);
     const darkSurfaceAlt = Color(0xFF1A1F26);
     const darkBorder = Color(0xFF252B33);
-    const darkTeal = Color(0xFF2BA68A); // lighter teal for dark-mode contrast
+    const darkTeal = Color(0xFF2BA68A);
 
     final scheme = ColorScheme.fromSeed(
       seedColor: teal,
@@ -109,8 +181,6 @@ class TabbyTheme {
         backgroundColor: darkSurface,
         foregroundColor: paper,
         elevation: 0,
-        // Keep the AppBar from picking up an elevation tint when the list
-        // scrolls underneath it — matches the light-theme behaviour.
         scrolledUnderElevation: 0,
         centerTitle: false,
       ),
@@ -131,7 +201,6 @@ class TabbyTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        // Slightly raised surface so fields stand out from the scaffold.
         fillColor: darkSurfaceAlt,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -155,30 +224,24 @@ class TabbyTheme {
         type: BottomNavigationBarType.fixed,
       ),
       dividerTheme: const DividerThemeData(
-          color: darkBorder, thickness: 1, space: 1,),
+        color: darkBorder,
+        thickness: 1,
+        space: 1,
+      ),
     );
   }
 
   // ── Context-aware semantic helpers ──────────────────────────────────────
-  //
-  // Use these instead of the raw static colour constants when you need a
-  // value that adapts between light and dark mode automatically.  The raw
-  // constants (teal, amber, clay …) are still fine for brand-colour accents
-  // that are intentionally the same in both modes.
 
   /// Subdued text / icon colour — medium emphasis on the current surface.
-  /// Replaces hard-coded [dim] in places that must be readable on both
-  /// the light paper (#FBFAF6) and the dark ink (#11151A) backgrounds.
   static Color dimOf(BuildContext context) =>
       Theme.of(context).colorScheme.onSurfaceVariant;
 
   /// Card / container fill — one step above the scaffold surface.
-  /// Use instead of `Colors.white` (light) or hardcoded dark values.
   static Color cardFillOf(BuildContext context) =>
       Theme.of(context).colorScheme.surfaceContainerHighest;
 
   /// Subtle border / separator colour that adapts to the current brightness.
-  /// Replaces [mist] in `Border.all(color: TabbyTheme.mist)` calls.
   static Color borderOf(BuildContext context) =>
       Theme.of(context).colorScheme.outlineVariant;
 
@@ -193,7 +256,6 @@ class TabbyTheme {
     );
 
     return inter.copyWith(
-      // Display sizes (money headlines, screen titles) use Fraunces.
       displayLarge: fraunces.copyWith(
         fontSize: 40,
         fontWeight: FontWeight.w600,
@@ -221,6 +283,6 @@ TextStyle amountStyle(BuildContext context, {bool positive = true}) {
     fontSize: 18,
     fontWeight: FontWeight.w600,
     fontFeatures: const [FontFeature.tabularFigures()],
-    color: positive ? scheme.primary : TabbyTheme.clay,
+    color: positive ? scheme.primary : SortedTheme.clay,
   );
 }
