@@ -6,6 +6,7 @@ import '../../../core/fx_rates.dart';
 import '../../../core/models.dart';
 import '../../../data/activity_repository.dart';
 import '../../../data/groups_repository.dart';
+import '../../../data/invites_repository.dart';
 import '../../theme/sorted_theme.dart';
 
 class GroupsTab extends ConsumerWidget {
@@ -21,6 +22,11 @@ class GroupsTab extends ConsumerWidget {
             style: Theme.of(context).textTheme.displaySmall,),
         toolbarHeight: 72,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.vpn_key_outlined),
+            tooltip: 'Join with code',
+            onPressed: () => _showJoinSheet(context, ref),
+          ),
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             tooltip: 'New group',
@@ -101,6 +107,14 @@ class GroupsTab extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showJoinSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const _JoinWithCodeSheet(),
     );
   }
 
@@ -297,6 +311,100 @@ class _NewGroupSheetState extends ConsumerState<_NewGroupSheet> {
                         color: Colors.white, strokeWidth: 2,),
                   )
                 : const Text('Create group'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _JoinWithCodeSheet extends ConsumerStatefulWidget {
+  const _JoinWithCodeSheet();
+
+  @override
+  ConsumerState<_JoinWithCodeSheet> createState() => _JoinWithCodeSheetState();
+}
+
+class _JoinWithCodeSheetState extends ConsumerState<_JoinWithCodeSheet> {
+  final _code = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  Future<void> _join() async {
+    final code = _code.text.trim();
+    if (code.isEmpty) {
+      setState(() => _error = 'Enter an invite code.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final groupId = await ref.read(invitesRepositoryProvider).claimInvite(code);
+      ref.invalidate(myGroupsProvider);
+      ref.invalidate(activityFeedProvider);
+      if (mounted) {
+        Navigator.of(context).pop();
+        context.go('/group/$groupId');
+      }
+    } catch (e) {
+      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _code.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final inset = MediaQuery.of(context).viewInsets.bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + inset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Join with code', style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 4),
+          Text(
+            'Enter the 8-character code from your invite.',
+            style: TextStyle(color: SortedTheme.dimOf(context), fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _code,
+            autofocus: true,
+            autocorrect: false,
+            textCapitalization: TextCapitalization.characters,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _join(),
+            style: const TextStyle(letterSpacing: 4, fontWeight: FontWeight.w600),
+            decoration: const InputDecoration(hintText: 'e.g. AB12CD34'),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 10),
+            Text(_error!, style: const TextStyle(color: SortedTheme.clay, fontSize: 13)),
+          ],
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: _busy ? null : _join,
+            style: FilledButton.styleFrom(
+              backgroundColor: SortedTheme.teal,
+              minimumSize: const Size.fromHeight(48),
+            ),
+            child: _busy
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text('Join group'),
           ),
         ],
       ),

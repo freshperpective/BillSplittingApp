@@ -45,6 +45,7 @@ dependencies:
   image_picker: ^1.1.2
 
   rational: any
+  share_plus: ^10.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

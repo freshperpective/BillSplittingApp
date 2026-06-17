@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../core/models.dart';
 import '../../core/money.dart';
@@ -10,6 +11,7 @@ import '../../data/activity_repository.dart';
 import '../../data/balance_providers.dart';
 import '../../data/expenses_repository.dart';
 import '../../data/groups_repository.dart';
+import '../../data/invites_repository.dart';
 import '../../data/supabase_client.dart';
 import '../theme/sorted_theme.dart';
 import '../widgets/activity_row.dart';
@@ -1077,6 +1079,38 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
     }
   }
 
+  Future<void> _shareInvite(BuildContext context) async {
+    setState(() {
+      _busy = true;
+      _error = null;
+      _success = null;
+    });
+    try {
+      final code = await ref
+          .read(invitesRepositoryProvider)
+          .createInvite(widget.groupId);
+      final groupName =
+          ref.read(groupByIdProvider(widget.groupId)).valueOrNull?.name ??
+              'the group';
+      final joinUrl =
+          'https://freshperpective.github.io/BillSplittingApp/join/?code=$code';
+      if (!context.mounted) return;
+      await Share.share(
+        'Join "$groupName" on Sorted!\n\n'
+        'Install the app, sign in, then tap:\n$joinUrl\n\n'
+        'Or enter code: $code\n'
+        '(valid for 7 days)',
+        subject: 'Join $groupName on Sorted',
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = 'Could not create invite: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _addByEmail() async {
     final email = _email.text.trim();
     if (email.isEmpty || !email.contains('@')) {
@@ -1197,6 +1231,19 @@ class _MembersSheetState extends ConsumerState<_MembersSheet> {
             const SizedBox(height: 10),
             Text(_success!,
                 style: const TextStyle(color: SortedTheme.teal, fontSize: 13),),
+          ],
+          if (!isArchived) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : () => _shareInvite(context),
+              icon: const Icon(Icons.link, size: 18),
+              label: const Text('Invite via link'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: SortedTheme.teal,
+                side: const BorderSide(color: SortedTheme.teal),
+                minimumSize: const Size.fromHeight(44),
+              ),
+            ),
           ],
           const SizedBox(height: 18),
           Text('In this group',
