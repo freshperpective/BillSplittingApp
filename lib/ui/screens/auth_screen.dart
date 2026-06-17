@@ -12,56 +12,47 @@ class AuthScreen extends ConsumerStatefulWidget {
   ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-enum _Mode { signIn, signUp }
+enum _State { idle, busy, sent }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _email = TextEditingController();
-  final _password = TextEditingController();
-  _Mode _mode = _Mode.signIn;
-  bool _busy = false;
-  String? _status;
+  _State _state = _State.idle;
+  String? _error;
 
-  Future<void> _submit() async {
+  Future<void> _sendLink() async {
     final email = _email.text.trim();
-    final password = _password.text;
-
     if (email.isEmpty || !email.contains('@')) {
-      setState(() => _status = 'Enter a valid email.');
-      return;
-    }
-    if (password.length < 6) {
-      setState(() => _status = 'Password must be at least 6 characters.');
+      setState(() => _error = 'Enter a valid email.');
       return;
     }
 
     setState(() {
-      _busy = true;
-      _status = null;
+      _state = _State.busy;
+      _error = null;
     });
 
     try {
-      final auth = ref.read(supabaseClientProvider).auth;
-      if (_mode == _Mode.signUp) {
-        final res = await auth.signUp(email: email, password: password);
-        if (res.session == null) {
-          // Email confirmation is enabled in Supabase. Tell the user.
-          setState(() => _status =
-              'Check your email to confirm your account, then come back here and sign in.',);
-        }
-      } else {
-        await auth.signInWithPassword(email: email, password: password);
-      }
-      // On success the auth stream fires and router redirects us home.
+      await ref.read(supabaseClientProvider).auth.signInWithOtp(
+            email: email,
+            emailRedirectTo: 'com.freshperpective.sorted://login-callback/',
+          );
+      setState(() => _state = _State.sent);
     } catch (e) {
-      setState(() => _status = e.toString().replaceFirst('Exception: ', ''));
-    } finally {
-      if (mounted) setState(() => _busy = false);
+      setState(() {
+        _state = _State.idle;
+        _error = e.toString().replaceFirst('Exception: ', '');
+      });
     }
   }
 
   @override
+  void dispose() {
+    _email.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isSignUp = _mode == _Mode.signUp;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -86,75 +77,96 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ),
               ),
               const SizedBox(height: 56),
-              Text(isSignUp ? 'Create an account' : 'Sign in',
-                  style: Theme.of(context).textTheme.headlineSmall,),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                decoration: const InputDecoration(
-                  hintText: 'you@example.com',
-                  prefixIcon: Icon(Icons.alternate_email),
+              if (_state == _State.sent) ...[
+                const Icon(
+                  Icons.mark_email_read_outlined,
+                  size: 48,
+                  color: SortedTheme.teal,
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _password,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  hintText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outline),
+                const SizedBox(height: 16),
+                Text(
+                  'Check your inbox',
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                onSubmitted: (_) => _submit(),
-              ),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: _busy ? null : _submit,
-                style: FilledButton.styleFrom(
-                  backgroundColor: SortedTheme.teal,
-                  minimumSize: const Size.fromHeight(52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                const SizedBox(height: 8),
+                Text(
+                  'We sent a sign-in link to ${_email.text.trim()}.\nTap it to open Sorted.',
+                  style: TextStyle(
+                    color: SortedTheme.dimOf(context),
+                    fontSize: 14,
+                    height: 1.5,
                   ),
                 ),
-                child: _busy
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(isSignUp ? 'Create account' : 'Sign in'),
-              ),
-              if (_status != null) ...[
-                const SizedBox(height: 12),
-                Text(_status!,
-                    style: TextStyle(
-                        color: _status!.startsWith('Check')
-                            ? SortedTheme.teal
-                            : SortedTheme.clay,
-                        fontSize: 13,),),
+                const SizedBox(height: 28),
+                Center(
+                  child: TextButton(
+                    onPressed: () => setState(() {
+                      _state = _State.idle;
+                      _error = null;
+                    }),
+                    child: const Text(
+                      'Use a different email',
+                      style: TextStyle(color: SortedTheme.teal),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                Text(
+                  'Sign in',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "We'll send you a link — no password needed.",
+                  style: TextStyle(
+                    color: SortedTheme.dimOf(context),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _email,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _sendLink(),
+                  decoration: const InputDecoration(
+                    hintText: 'you@example.com',
+                    prefixIcon: Icon(Icons.alternate_email),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: _state == _State.busy ? null : _sendLink,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: SortedTheme.teal,
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: _state == _State.busy
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Send magic link'),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: const TextStyle(
+                      color: SortedTheme.clay,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ],
-              const SizedBox(height: 16),
-              Center(
-                child: TextButton(
-                  onPressed: _busy
-                      ? null
-                      : () => setState(() {
-                            _mode = isSignUp ? _Mode.signIn : _Mode.signUp;
-                            _status = null;
-                          }),
-                  child: Text(
-                    isSignUp
-                        ? 'Have an account? Sign in'
-                        : 'New here? Create an account',
-                    style: const TextStyle(color: SortedTheme.teal),
-                  ),
-                ),
-              ),
               const SizedBox(height: 32),
               Center(
                 child: Text(
